@@ -121,8 +121,18 @@ async function fetchTrends(q) {
 
 // ─── PROMPTS ──────────────────────────────────────────────────────────────────
 const P = {
-  gap: (market) => `Parent market: "${market}". Find the single best brand gap — a sub-community with strong product demand but ZERO brand ownership. The Pilates socks logic: everyone needs them, nobody says "my Brand X grip socks." Evaluate 5 sub-communities. Score on: growth signal + brand saturation (lower = better gap).
-Return ONLY JSON: {"parentMarket":"${market}","subCommunities":[{"name":"name","youtubeSearch":"term","growthSignal":"strong/moderate/emerging","products":["p1","p2"]},{"name":"name","youtubeSearch":"term","growthSignal":"strong/moderate/emerging","products":["p1","p2"]},{"name":"name","youtubeSearch":"term","growthSignal":"strong/moderate/emerging","products":["p1","p2"]},{"name":"name","youtubeSearch":"term","growthSignal":"strong/moderate/emerging","products":["p1","p2"]},{"name":"name","youtubeSearch":"term","growthSignal":"strong/moderate/emerging","products":["p1","p2"]}],"winnerSubCommunity":"name","winnerProduct":"specific product","gapScore":9,"whyThisGap":"2 sentences","brandSaturation":"NONE/VERY LOW/LOW","howPeopleReferToIt":"generic phrase","dominantBrands":["none yet"],"parentMarketSize":"$XB","cagr":"X%","youtubeSearchTerm":"exact search term"}`,
+  gap: (market) => `Market: "${market}". Find the single best brand gap — unbranded sub-category with real spend. Like Pilates socks: everyone buys them, nobody owns the brand.
+Return ONLY JSON: {"parentMarket":"${market}","subCommunities":[{"name":"n","growthSignal":"strong","products":["p1"]},{"name":"n","growthSignal":"moderate","products":["p1"]},{"name":"n","growthSignal":"emerging","products":["p1"]}],"winnerSubCommunity":"name","winnerProduct":"specific product","gapScore":9,"whyThisGap":"2 sentences","brandSaturation":"VERY LOW","howPeopleReferToIt":"phrase","dominantBrands":["none"],"parentMarketSize":"$XB","cagr":"X%","youtubeSearchTerm":"search term"}`,
+```
+
+Also find the `content` prompt — it's the second slowest. Find `content: (brand, product, sub, avatar, identity) =>` and at the very end of that prompt find:
+```
+"contentCalendar":[{"week":1,"theme":"t","posts":3,"goal":"g"},{"week":2,"theme":"t","posts":3,"goal":"g"},{"week":3,"theme":"t","posts":4,"goal":"g"},{"week":4,"theme":"t","posts":4,"goal":"g"}]}`,
+```
+
+Delete the entire `contentCalendar` section so it ends at:
+```
+"retargetingStrategy":{"trigger":"50%+ view","audienceDescription":"who","adFormat":"static","expectedCVR":"X%+","adCopy":[{"headline":"h1","body":"2 sentences","cta":"btn"},{"headline":"h2","body":"2 sentences","cta":"btn"}]}}`,
 
   mine: (sub, product, ytData) => ytData?.corpus
     ? `You have REAL YouTube transcript data from ${ytData.videosWithTranscripts} videos in the "${sub}" community.\n\nTranscript corpus:\n---\n${ytData.corpus.slice(0, 18000)}\n---\n\nAnalyze for "${product}" brand gap signals. Find generic language (no brand names), frustration signals, exact phrases people use.\nReturn ONLY JSON: {"transcriptsAnalyzed":${ytData.videosWithTranscripts},"dataSource":"REAL_YOUTUBE","keyQuotes":["exact real quote 1","exact real quote 2","exact real quote 3"],"productMentions":[{"product":"${product}","genericLanguage":"phrase","mentionCount":8,"brandAwareness":"NONE/LOW","buyingIntent":"HIGH/MED/LOW"},{"product":"adjacent 1","genericLanguage":"phrase","mentionCount":4,"brandAwareness":"LOW","buyingIntent":"MED"},{"product":"adjacent 2","genericLanguage":"phrase","mentionCount":3,"brandAwareness":"LOW","buyingIntent":"LOW"}],"verdict":"PRODUCT AWARE, NOT BRAND AWARE","confirmation":"one sentence based on real data","earlyAdopterProfile":"describe based on actual creators"}`
@@ -681,7 +691,7 @@ export default function App() {
       const d = await callClaude(prompt);
       if (d._error) { setSt(id, "error"); addLog(`Failed: ${d._error}`); return null; }
       setRes(id, d); setSt(id, "done"); addLog(`Done`);
-      await sleep(4000); return d;
+      await sleep(1000); return d;
     };
 
     try {
