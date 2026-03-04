@@ -730,7 +730,20 @@ export default function App() {
       if (!su) { setPhase("done"); return; }
 
       addLog(`Complete — ${id.winner} is ready`);
-      setPhase("done");
+
+// Save to Redis
+try {
+  await fetch('/api/history', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ results: { gap, mine, validate: val, avatar: av, brands: br, brand: id, shopify: sh, content: ct, supplier: su }, market: parentMarket })
+  });
+  addLog(`Saved to history`);
+} catch (e) {
+  addLog(`Save failed: ${e.message}`);
+}
+
+setPhase("done");
     } catch (e) { addLog(`Error: ${e.message}`); setPhase("done"); }
   }, []);
 
