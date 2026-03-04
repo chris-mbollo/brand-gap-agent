@@ -105,7 +105,7 @@ async function callClaude(prompt, system) {
 
 async function fetchYouTube(q) {
   try {
-    const res = await fetch(`/api/youtube?q=${encodeURIComponent(q)}&maxResults=12`);
+    const res = await fetch(`/api/youtube?q=${encodeURIComponent(q)}&maxResults=50`);
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }
@@ -755,7 +755,7 @@ export default function App() {
   };
 
   const doneCount = Object.values(stMap).filter(s => s === "done").length;
-  const allDone   = doneCount === STAGES.length;
+  const allDone   = !!results.supplier;
   const pct       = (doneCount / STAGES.length) * 100;
   const brandName = results.brand?.winner;
   const Panel     = tab ? Panels[tab] : null;
@@ -844,13 +844,25 @@ export default function App() {
 
       {/* ── HISTORY SCREEN ── */}
       {screen === "history" && (
-        <div style={{ height: "calc(100vh - 52px)", overflowY: "auto", background: "var(--white)" }}>
-          <HistoryScreen onViewRun={(id) => {
-            // Full run loading coming next
-            alert(`Run ${id} — full reload coming next`);
-          }} />
-        </div>
-      )}
+  <div style={{ height: "calc(100vh - 52px)", overflowY: "auto", background: "var(--white)" }}>
+    <HistoryScreen onViewRun={async (id) => {
+      try {
+        const res = await fetch(`/api/history?id=${id}`);
+        const full = await res.json();
+        if (full?.results) {
+          setResults(full.results);
+          setMarket(full.market);
+          const newStMap = {};
+          Object.keys(full.results).forEach(k => { newStMap[k] = "done"; });
+          setStMap(newStMap);
+          setTab("gap");
+          setPhase("done");
+          setScreen("agent");
+        }
+      } catch (e) { alert("Failed to load run: " + e.message); }
+    }} />
+  </div>
+)}
 
       {/* ── AGENT SCREEN ── */}
       {screen === "agent" && (
