@@ -662,6 +662,9 @@ async function generatePPT(results, market) {
 export default function App() {
   const [phase, setPhase]     = useState("idle");
   const [market, setMarket]   = useState("");
+  const [phase, setPhase]     = useState("idle");
+const [market, setMarket]   = useState("");
+const [screen, setScreen]   = useState("agent"); // "agent" or "history"
   const [stMap, setStMap]     = useState({});
   const [results, setResults] = useState({});
   const [tab, setTab]         = useState(null);
@@ -779,7 +782,26 @@ setPhase("done");
           <div style={{ width: 24, height: 24, background: "var(--gray-900)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontSize: 12, color: "white" }}>◎</span>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>Brand Gap</span>
+         <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>Brand Gap</span>
+
+<div style={{ display: "flex", gap: 2, marginLeft: 8 }}>
+  {["agent", "history"].map(s => (
+    <button
+      key={s}
+      onClick={() => setScreen(s)}
+      style={{
+        padding: "4px 12px",
+        borderRadius: "var(--radius-sm)",
+        fontSize: 12,
+        fontWeight: 500,
+        background: screen === s ? "var(--gray-100)" : "transparent",
+        color: screen === s ? "var(--gray-900)" : "var(--gray-400)",
+        transition: "all 0.15s",
+        textTransform: "capitalize"
+      }}
+    >{s}</button>
+  ))}
+</div>
           {brandName && <>
             <span style={{ color: "var(--gray-300)" }}>·</span>
             <span style={{ fontSize: 13, color: "var(--gray-500)" }}>{brandName}</span>
@@ -1048,6 +1070,14 @@ setPhase("done");
               </div>
             )}
           </div>
+        </div>
+      )}
+   {screen === "history" && (
+        <div style={{ height: "calc(100vh - 54px)", overflowY: "auto", background: "var(--white)" }}>
+          <HistoryScreen onViewRun={(id) => {
+            // We'll build full run loading in the next step
+            alert(`Run ${id} — full reload coming next`);
+          }} />
         </div>
       )}
     </div>
