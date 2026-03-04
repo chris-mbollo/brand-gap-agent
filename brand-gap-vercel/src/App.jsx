@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import HistoryScreen from "./HistoryScreen.jsx";
 
 // ─── DESIGN SYSTEM ────────────────────────────────────────────────────────────
 const FONTS = `
