@@ -1,21 +1,5 @@
-/**
- * /api/youtube.js
- * 
- * Serverless function: searches YouTube for videos by keyword,
- * then fetches transcripts for each. Returns cleaned transcript
- * text ready to feed into Claude.
- *
- * Required env vars:
- *   YOUTUBE_API_KEY — from Google Cloud Console (YouTube Data API v3)
- *
- * Usage:
- *   GET /api/youtube?q=reformer+pilates+grip+socks&maxResults=12
- */
+export const config = { maxDuration: 60 };
 
-export const config = { runtime: 'edge' };
-
-// Fetch YouTube transcript via the timedtext endpoint
-// (same endpoint YouTube uses internally for captions)
 async function fetchTranscript(videoId) {
   try {
     const supadataKey = process.env.SUPADATA_API_KEY;
@@ -34,61 +18,56 @@ async function fetchTranscript(videoId) {
 
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
-  const query = searchParams.get('q');
-  const maxResults = parseInt(searchParams.get('maxResults') || '12');
+  const query      = searchParams.get('q');
+  const maxResults = Math.min(parseInt(searchParams.get('maxResults') || '50'), 50);
 
-  if (!query) {
-    return new Response(JSON.stringify({ error: 'q param required' }), {
-      status: 400, headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  if (!query) return new Response(JSON.stringify({ error: 'q param required' }), {
+    status: 400, headers: { 'Content-Type': 'application/json' }
+  });
 
   const apiKey = process.env.YOUTUBE_API_KEY;
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'YOUTUBE_API_KEY not set' }), {
-      status: 500, headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  if (!apiKey) return new Response(JSON.stringify({ error: 'YOUTUBE_API_KEY not set' }), {
+    status: 500, headers: { 'Content-Type': 'application/json' }
+  });
 
   try {
-    // Search YouTube
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=${maxResults}&relevanceLanguage=en&videoDuration=medium&key=${apiKey}`;
-    const searchRes = await fetch(searchUrl);
+    const searchRes  = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=${maxResults}&relevanceLanguage=en&videoDuration=medium&key=${apiKey}`);
     const searchData = await searchRes.json();
 
-    if (!searchData.items?.length) {
-      return new Response(JSON.stringify({ videos: [], transcripts: [] }), {
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-      });
-    }
+    if (searchData.error) return new Response(JSON.stringify({ error: searchData.error.message, videos: [], videosFound: 0, videosWithTranscripts: 0, corpus: '' }), {
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+
+    if (!searchData.items?.length) return new Response(JSON.stringify({ videos: [], videosFound: 0, videosWithTranscripts: 0, corpus: '' }), {
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
 
     const videoIds = searchData.items.map(v => v.id?.videoId).filter(Boolean);
 
-    // Fetch video details (title, description, view count)
-    const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(',')}&key=${apiKey}`;
-    const detailsRes = await fetch(detailsUrl);
+    const detailsRes  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(',')}&key=${apiKey}`);
     const detailsData = await detailsRes.json();
 
-    // Fetch transcripts in parallel (with timeout)
-    const transcriptPromises = videoIds.slice(0, 50).map(id =>
-      Promise.race([
-        fetchTranscript(id),
-        new Promise(r => setTimeout(() => r(null), 6000)) // 6s timeout per video
-      ])
-    );
-    const transcripts = await Promise.all(transcriptPromises);
+    // Fetch transcripts in batches of 10
+    const transcripts = new Array(videoIds.length).fill(null);
+    const batchSize = 10;
+    for (let i = 0; i < videoIds.length; i += batchSize) {
+      const batch   = videoIds.slice(i, i + batchSize);
+      const results = await Promise.all(batch.map(id => fetchTranscript(id)));
+      results.forEach((r, j) => { transcripts[i + j] = r; });
+      if (i + batchSize < videoIds.length) await new Promise(r => setTimeout(r, 500));
+    }
 
     const videos = (detailsData.items || []).map((v, i) => ({
-      videoId: v.id,
-      title: v.snippet?.title,
+      videoId:      v.id,
+      title:        v.snippet?.title,
       channelTitle: v.snippet?.channelTitle,
-      description: v.snippet?.description?.slice(0, 300),
-      viewCount: v.statistics?.viewCount,
-      publishedAt: v.snippet?.publishedAt,
-      transcript: transcripts[i] || null
+      description:  v.snippet?.description?.slice(0, 300),
+      viewCount:    v.statistics?.viewCount,
+      publishedAt:  v.snippet?.publishedAt,
+      transcript:   transcripts[i] || null
     }));
 
-    // Combined transcript corpus for Claude
+    const videosWithTranscripts = videos.filter(v => v.transcript).length;
     const corpus = videos
       .filter(v => v.transcript)
       .map(v => `--- VIDEO: "${v.title}" by ${v.channelTitle} ---\n${v.transcript}`)
@@ -97,15 +76,12 @@ export default async function handler(req) {
     return new Response(JSON.stringify({
       query,
       videosFound: videos.length,
-      videosWithTranscripts: videos.filter(v => v.transcript).length,
+      videosWithTranscripts,
+      transcriptMethod: process.env.SUPADATA_API_KEY ? 'SUPADATA' : 'NONE — add SUPADATA_API_KEY',
       videos,
-      corpus: corpus.slice(0, 25000) // cap total corpus
+      corpus: corpus.slice(0, 30000)
     }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 's-maxage=3600' // cache for 1 hour
-      }
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 's-maxage=3600' }
     });
 
   } catch (e) {
