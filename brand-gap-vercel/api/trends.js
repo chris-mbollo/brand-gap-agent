@@ -21,7 +21,7 @@ export const config = { runtime: 'edge' };
 function scoreTrend(timelineData) {
   if (!timelineData?.length) return { score: 0, direction: 'unknown', momentum: 0 };
 
-  const values = timelineData.map(d => d.value || 0);
+  const values = timelineData.map(d => d.values?.[0]?.extracted_value ?? d.value ?? 0);
   const recent = values.slice(-4); // last 4 data points
   const older = values.slice(0, 4); // first 4 data points
 
@@ -90,6 +90,12 @@ export default async function handler(req) {
     const timelineUrl = `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&geo=${geo}&date=today+12-m&api_key=${serpApiKey}`;
     const timelineRes = await fetch(timelineUrl);
     const timelineData = await timelineRes.json();
+
+    if (timelineData.error) {
+      return new Response(JSON.stringify({ error: timelineData.error, tip: 'Check SERPAPI_KEY and quota at serpapi.com/manage-api-key' }), {
+        status: 402, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
 
     // Related queries
     const relatedUrl = `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&geo=${geo}&data_type=RELATED_QUERIES&api_key=${serpApiKey}`;
