@@ -123,16 +123,6 @@ async function fetchTrends(q) {
 const P = {
   gap: (market) => `Market: "${market}". Find the single best brand gap — unbranded sub-category with real spend. Like Pilates socks: everyone buys them, nobody owns the brand.
 Return ONLY JSON: {"parentMarket":"${market}","subCommunities":[{"name":"n","growthSignal":"strong","products":["p1"]},{"name":"n","growthSignal":"moderate","products":["p1"]},{"name":"n","growthSignal":"emerging","products":["p1"]}],"winnerSubCommunity":"name","winnerProduct":"specific product","gapScore":9,"whyThisGap":"2 sentences","brandSaturation":"VERY LOW","howPeopleReferToIt":"phrase","dominantBrands":["none"],"parentMarketSize":"$XB","cagr":"X%","youtubeSearchTerm":"search term"}`,
-```
-
-Also find the `content` prompt — it's the second slowest. Find `content: (brand, product, sub, avatar, identity) =>` and at the very end of that prompt find:
-```
-"contentCalendar":[{"week":1,"theme":"t","posts":3,"goal":"g"},{"week":2,"theme":"t","posts":3,"goal":"g"},{"week":3,"theme":"t","posts":4,"goal":"g"},{"week":4,"theme":"t","posts":4,"goal":"g"}]}`,
-```
-
-Delete the entire `contentCalendar` section so it ends at:
-```
-"retargetingStrategy":{"trigger":"50%+ view","audienceDescription":"who","adFormat":"static","expectedCVR":"X%+","adCopy":[{"headline":"h1","body":"2 sentences","cta":"btn"},{"headline":"h2","body":"2 sentences","cta":"btn"}]}}`,
 
   mine: (sub, product, ytData) => ytData?.corpus
     ? `You have REAL YouTube transcript data from ${ytData.videosWithTranscripts} videos in the "${sub}" community.\n\nTranscript corpus:\n---\n${ytData.corpus.slice(0, 18000)}\n---\n\nAnalyze for "${product}" brand gap signals. Find generic language (no brand names), frustration signals, exact phrases people use.\nReturn ONLY JSON: {"transcriptsAnalyzed":${ytData.videosWithTranscripts},"dataSource":"REAL_YOUTUBE","keyQuotes":["exact real quote 1","exact real quote 2","exact real quote 3"],"productMentions":[{"product":"${product}","genericLanguage":"phrase","mentionCount":8,"brandAwareness":"NONE/LOW","buyingIntent":"HIGH/MED/LOW"},{"product":"adjacent 1","genericLanguage":"phrase","mentionCount":4,"brandAwareness":"LOW","buyingIntent":"MED"},{"product":"adjacent 2","genericLanguage":"phrase","mentionCount":3,"brandAwareness":"LOW","buyingIntent":"LOW"}],"verdict":"PRODUCT AWARE, NOT BRAND AWARE","confirmation":"one sentence based on real data","earlyAdopterProfile":"describe based on actual creators"}`
@@ -150,7 +140,7 @@ Delete the entire `contentCalendar` section so it ends at:
 
   shopify: (brand, product, sub, avatar) => `Shopify brief for "${brand}" / "${product}" / "${avatar}" in "${sub}". Brandy Melville simplicity + Glossier identity-first copy.\nReturn ONLY JSON: {"domain":"suggested.com","layoutInspiration":"brand + why","heroSection":{"headline":"text","subline":"text","cta":"text"},"navigation":["l1","l2","l3","l4"],"productDescription":"3 paragraphs identity-first","socialProofStrategy":"UGC plan","upsellLogic":"what + why","emailCaptureIdea":"lead magnet","conversionElements":["el1","el2","el3","el4"],"seoTitle":"meta title","seoDescription":"meta desc","shopifyTheme":"theme + why"}`,
 
-  content: (brand, product, sub, avatar, identity) => `Viral content for "${brand}" / "${product}" / "${avatar}" (${identity}) in "${sub}". 30s transition rule: X-factor reveal at exactly 30s. Stitch tactic: find existing viral content that logically sets up the product.\nReturn ONLY JSON: {"contentPillars":[{"pillar":"name","resonance":"why","formats":["f1","f2"]},{"pillar":"name","resonance":"why","formats":["f1","f2"]},{"pillar":"name","resonance":"why","formats":["f1","f2"]}],"viralScripts":[{"title":"title","platform":"TikTok/Reels/Both","stitchConcept":"what + WHY","hook_0_3s":"script","setup_3_30s":"build","transition_30s":"X FACTOR REVEAL","close_30_60s":"close + CTA","viralMechanic":"why algorithm pushes","targetEmotion":"emotion at 30s"},{"title":"title","platform":"Both","stitchConcept":"stitch","hook_0_3s":"hook","setup_3_30s":"setup","transition_30s":"reveal","close_30_60s":"close","viralMechanic":"why","targetEmotion":"emotion"}],"retargetingStrategy":{"trigger":"50%+ view","audienceDescription":"who post-watch","adFormat":"static from shoot","expectedCVR":"X%+","adCopy":[{"headline":"h1","body":"2 sentences","cta":"btn"},{"headline":"h2","body":"2 sentences","cta":"btn"}]},"contentCalendar":[{"week":1,"theme":"t","posts":3,"goal":"g"},{"week":2,"theme":"t","posts":3,"goal":"g"},{"week":3,"theme":"t","posts":4,"goal":"g"},{"week":4,"theme":"t","posts":4,"goal":"g"}]}`,
+  content: (brand, product, sub, avatar, identity) => `Viral content for "${brand}" / "${product}" / "${avatar}" (${identity}) in "${sub}". 30s transition rule: X-factor reveal at exactly 30s. Stitch tactic: find existing viral content that logically sets up the product.\nReturn ONLY JSON: {"contentPillars":[{"pillar":"name","resonance":"why","formats":["f1","f2"]},{"pillar":"name","resonance":"why","formats":["f1","f2"]},{"pillar":"name","resonance":"why","formats":["f1","f2"]}],"viralScripts":[{"title":"title","platform":"TikTok/Reels/Both","stitchConcept":"what + WHY","hook_0_3s":"script","setup_3_30s":"build","transition_30s":"X FACTOR REVEAL","close_30_60s":"close + CTA","viralMechanic":"why algorithm pushes","targetEmotion":"emotion at 30s"},{"title":"title","platform":"Both","stitchConcept":"stitch","hook_0_3s":"hook","setup_3_30s":"setup","transition_30s":"reveal","close_30_60s":"close","viralMechanic":"why","targetEmotion":"emotion"}],"retargetingStrategy":{"trigger":"50%+ view","audienceDescription":"who post-watch","adFormat":"static from shoot","expectedCVR":"X%+","adCopy":[{"headline":"h1","body":"2 sentences","cta":"btn"},{"headline":"h2","body":"2 sentences","cta":"btn"}]}}`,
 
   supplier: (brand, product, sub, price) => `Supplier pack for "${brand}" / "${product}" in "${sub}". Retail: ${price}. Search by supplier. Message 20-50. Negotiate with competing quotes.\nReturn ONLY JSON: {"manufacturingBrief":{"variants":["v1","v2","v3"],"colorways":["c1","c2","c3"],"customizations":["diff 1","diff 2","diff 3"],"logoPlacement":"instructions","packaging":"unboxing brief","targetCOGS":"$X-$X","suggestedRetail":"${price}","targetGrossMargin":"XX%","moq":"XXX units","materials":"specs","qualityDifferentiator":"vs dropship","leadTime":"X-X weeks"},"alibabaStrategy":{"searchTerms":["t1","t2","t3"],"filters":["Trade Assurance","Verified Pro","3+ years"],"suppliersToContact":"20-50","negotiationLeverage":"how to use quotes"},"outreachMessage":"full copy-paste message","sampleProcess":"what to check","negotiationScript":"word-for-word","redFlags":["rf1","rf2","rf3"],"estimatedBudget":{"inventory":"$X,XXX-$X,XXX","photography":"$1,500-$3,000","branding":"$500-$1,500","ads":"$2,000-$5,000","total":"$X,XXX-$XX,XXX"}}`
 };
@@ -664,14 +654,13 @@ async function generatePPT(results, market) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
-  // ── STATE ── (each variable declared exactly once)
-  const [phase, setPhase]       = useState("idle");
-  const [market, setMarket]     = useState("");
-  const [screen, setScreen]     = useState("agent"); // "agent" or "history"
-  const [stMap, setStMap]       = useState({});
-  const [results, setResults]   = useState({});
-  const [tab, setTab]           = useState(null);
-  const [log, setLog]           = useState([]);
+  const [phase, setPhase]         = useState("idle");
+  const [market, setMarket]       = useState("");
+  const [screen, setScreen]       = useState("agent");
+  const [stMap, setStMap]         = useState({});
+  const [results, setResults]     = useState({});
+  const [tab, setTab]             = useState(null);
+  const [log, setLog]             = useState([]);
   const [exporting, setExporting] = useState(false);
   const logRef = useRef(null);
 
@@ -738,7 +727,6 @@ export default function App() {
 
       addLog(`Complete — ${id.winner} is ready`);
 
-      // Save to Redis
       try {
         await fetch('/api/history', {
           method: 'POST',
@@ -749,9 +737,7 @@ export default function App() {
           })
         });
         addLog(`Saved to history`);
-      } catch (e) {
-        addLog(`Save failed: ${e.message}`);
-      }
+      } catch (e) { addLog(`Save failed: ${e.message}`); }
 
       setPhase("done");
     } catch (e) { addLog(`Error: ${e.message}`); setPhase("done"); }
@@ -776,7 +762,6 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: "var(--white)", color: "var(--gray-900)", fontFamily: "var(--font-sans)" }}>
       <style>{FONTS + CSS}</style>
 
-      {/* ── TOPBAR ── */}
       <div style={{
         position: "sticky", top: 0, zIndex: 100,
         height: 52, borderBottom: "1px solid var(--gray-200)",
@@ -789,33 +774,21 @@ export default function App() {
             <span style={{ fontSize: 12, color: "white" }}>◎</span>
           </div>
           <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>Brand Gap</span>
-
-          {/* ── SCREEN TABS ── */}
           <div style={{ display: "flex", gap: 2, marginLeft: 8 }}>
             {["agent", "history"].map(s => (
-              <button
-                key={s}
-                onClick={() => setScreen(s)}
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  background: screen === s ? "var(--gray-100)" : "transparent",
-                  color: screen === s ? "var(--gray-900)" : "var(--gray-400)",
-                  transition: "all 0.15s",
-                  textTransform: "capitalize"
-                }}
-              >{s}</button>
+              <button key={s} onClick={() => setScreen(s)} style={{
+                padding: "4px 12px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 500,
+                background: screen === s ? "var(--gray-100)" : "transparent",
+                color: screen === s ? "var(--gray-900)" : "var(--gray-400)",
+                transition: "all 0.15s", textTransform: "capitalize"
+              }}>{s}</button>
             ))}
           </div>
-
           {brandName && screen === "agent" && <>
             <span style={{ color: "var(--gray-300)" }}>·</span>
             <span style={{ fontSize: 13, color: "var(--gray-500)" }}>{brandName}</span>
           </>}
         </div>
-
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {phase === "running" && screen === "agent" && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)" }}>
@@ -825,8 +798,8 @@ export default function App() {
           )}
           {allDone && screen === "agent" && (
             <button onClick={exportPPT} disabled={exporting} style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "6px 14px", background: exporting ? "var(--gray-100)" : "var(--gray-900)",
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
+              background: exporting ? "var(--gray-100)" : "var(--gray-900)",
               color: exporting ? "var(--gray-400)" : "white",
               borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 500, transition: "all 0.15s"
             }}>
@@ -845,58 +818,50 @@ export default function App() {
         </div>
       </div>
 
-      {/* ── PROGRESS BAR (agent only) ── */}
       {phase !== "idle" && screen === "agent" && (
         <div style={{ height: 2, background: "var(--gray-100)" }}>
           <div style={{ height: "100%", width: `${pct}%`, background: "var(--gray-900)", transition: "width 0.6s cubic-bezier(0.16,1,0.3,1)" }} />
         </div>
       )}
 
-      {/* ── HISTORY SCREEN ── */}
       {screen === "history" && (
-  <div style={{ height: "calc(100vh - 52px)", overflowY: "auto", background: "var(--white)" }}>
-    <HistoryScreen onViewRun={async (id) => {
-      try {
-        const res = await fetch(`/api/history?id=${id}`);
-        const full = await res.json();
-        if (full?.results) {
-          setResults(full.results);
-          setMarket(full.market);
-          const newStMap = {};
-          Object.keys(full.results).forEach(k => { newStMap[k] = "done"; });
-          setStMap(newStMap);
-          setTab("gap");
-          setPhase("done");
-          setScreen("agent");
-        }
-      } catch (e) { alert("Failed to load run: " + e.message); }
-    }} />
-  </div>
-)}
+        <div style={{ height: "calc(100vh - 52px)", overflowY: "auto", background: "var(--white)" }}>
+          <HistoryScreen onViewRun={async (id) => {
+            try {
+              const res = await fetch(`/api/history?id=${id}`);
+              const full = await res.json();
+              if (full?.results) {
+                setResults(full.results);
+                setMarket(full.market);
+                const newStMap = {};
+                Object.keys(full.results).forEach(k => { newStMap[k] = "done"; });
+                setStMap(newStMap);
+                setTab("gap");
+                setPhase("done");
+                setScreen("agent");
+              }
+            } catch (e) { alert("Failed to load run: " + e.message); }
+          }} />
+        </div>
+      )}
 
-      {/* ── AGENT SCREEN ── */}
       {screen === "agent" && (
         <>
-          {/* ── IDLE SCREEN ── */}
           {phase === "idle" && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 52px)", padding: "60px 24px" }}>
               <div style={{ maxWidth: 520, width: "100%", animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards" }}>
-
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: 99, fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-500)", marginBottom: 28, letterSpacing: "0.04em" }}>
                   <span style={{ width: 6, height: 6, background: "#16a34a", borderRadius: "50%", display: "inline-block" }} />
                   Real YouTube + Google Trends data
                 </div>
-
                 <h1 style={{ fontSize: 48, fontFamily: "var(--font-serif)", lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--gray-900)", marginBottom: 16 }}>
                   Find where people<br />
                   <span style={{ fontStyle: "italic", color: "var(--gray-400)" }}>already spend,</span><br />
                   but own no brand.
                 </h1>
-
                 <p style={{ fontSize: 15, color: "var(--gray-500)", lineHeight: 1.8, marginBottom: 36 }}>
                   Nike owns <em>sports socks</em>. Nobody owns <em>Pilates socks</em>. Same market, billions in spend, zero brand ownership. Type a parent market — the agent finds the gap.
                 </p>
-
                 <div style={{ position: "relative", marginBottom: 12 }}>
                   <input
                     value={market}
@@ -907,38 +872,30 @@ export default function App() {
                       width: "100%", padding: "14px 130px 14px 18px",
                       border: "1px solid var(--gray-200)", borderRadius: "var(--radius)",
                       fontSize: 15, color: "var(--gray-900)", background: "var(--white)",
-                      outline: "none", boxShadow: "var(--shadow-sm)",
-                      transition: "border-color 0.15s, box-shadow 0.15s"
+                      outline: "none", boxShadow: "var(--shadow-sm)", transition: "border-color 0.15s, box-shadow 0.15s"
                     }}
                     onFocus={e => { e.target.style.borderColor = "var(--gray-400)"; e.target.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.04)"; }}
                     onBlur={e => { e.target.style.borderColor = "var(--gray-200)"; e.target.style.boxShadow = "var(--shadow-sm)"; }}
                   />
-                  <button
-                    onClick={() => market.trim() && run(market.trim())}
-                    disabled={!market.trim()}
-                    style={{
-                      position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                      padding: "8px 16px", background: market.trim() ? "var(--gray-900)" : "var(--gray-200)",
-                      color: market.trim() ? "white" : "var(--gray-400)",
-                      borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 500,
-                      transition: "all 0.15s", cursor: market.trim() ? "pointer" : "default"
-                    }}
-                  >Run →</button>
+                  <button onClick={() => market.trim() && run(market.trim())} disabled={!market.trim()} style={{
+                    position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                    padding: "8px 16px", background: market.trim() ? "var(--gray-900)" : "var(--gray-200)",
+                    color: market.trim() ? "white" : "var(--gray-400)",
+                    borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 500,
+                    transition: "all 0.15s", cursor: market.trim() ? "pointer" : "default"
+                  }}>Run →</button>
                 </div>
-
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 40 }}>
                   {EXAMPLES.map(ex => (
                     <button key={ex} onClick={() => setMarket(ex)} style={{
                       padding: "5px 12px", border: "1px solid var(--gray-200)",
-                      borderRadius: 99, fontSize: 12, color: "var(--gray-500)",
-                      background: "white", transition: "all 0.15s"
+                      borderRadius: 99, fontSize: 12, color: "var(--gray-500)", background: "white", transition: "all 0.15s"
                     }}
                       onMouseEnter={e => { e.target.style.borderColor = "var(--gray-400)"; e.target.style.color = "var(--gray-900)"; }}
                       onMouseLeave={e => { e.target.style.borderColor = "var(--gray-200)"; e.target.style.color = "var(--gray-500)"; }}
                     >{ex}</button>
                   ))}
                 </div>
-
                 <div style={{ borderTop: "1px solid var(--gray-100)", paddingTop: 28 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 24px" }}>
                     {[
@@ -963,35 +920,27 @@ export default function App() {
             </div>
           )}
 
-          {/* ── RUNNING / DONE ── */}
           {phase !== "idle" && (
             <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", height: "calc(100vh - 54px)" }}>
-
-              {/* ── SIDEBAR ── */}
               <div style={{ borderRight: "1px solid var(--gray-200)", display: "flex", flexDirection: "column", background: "var(--gray-50)" }}>
                 <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--gray-200)" }}>
                   <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", marginBottom: 4, letterSpacing: "0.08em" }}>MARKET</div>
                   <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", letterSpacing: "-0.01em" }}>{market}</div>
                 </div>
-
                 <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
                   {STAGES.map(s => {
                     const st = stMap[s.id] || "idle";
                     const active = tab === s.id;
                     const clickable = !!results[s.id];
                     return (
-                      <button
-                        key={s.id}
-                        onClick={() => clickable && setTab(s.id)}
-                        style={{
-                          width: "100%", padding: "8px 14px",
-                          background: active ? "var(--white)" : "transparent",
-                          borderLeft: `2px solid ${active ? "var(--gray-900)" : "transparent"}`,
-                          display: "flex", alignItems: "center", gap: 10,
-                          cursor: clickable ? "pointer" : "default", textAlign: "left",
-                          transition: "all 0.12s", borderRight: "none", borderTop: "none", borderBottom: "none"
-                        }}
-                      >
+                      <button key={s.id} onClick={() => clickable && setTab(s.id)} style={{
+                        width: "100%", padding: "8px 14px",
+                        background: active ? "var(--white)" : "transparent",
+                        borderLeft: `2px solid ${active ? "var(--gray-900)" : "transparent"}`,
+                        display: "flex", alignItems: "center", gap: 10,
+                        cursor: clickable ? "pointer" : "default", textAlign: "left",
+                        transition: "all 0.12s", borderRight: "none", borderTop: "none", borderBottom: "none"
+                      }}>
                         <div style={{ width: 20, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           {st === "running" && <Spin size={12} color={s.color} />}
                           {st === "done"    && <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "block" }} />}
@@ -1001,8 +950,7 @@ export default function App() {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{
                             fontSize: 12, fontWeight: 500, marginBottom: 1,
-                            color: st === "done" ? (active ? "var(--gray-900)" : "var(--gray-700)") :
-                                   st === "running" ? "var(--gray-900)" : "var(--gray-400)",
+                            color: st === "done" ? (active ? "var(--gray-900)" : "var(--gray-700)") : st === "running" ? "var(--gray-900)" : "var(--gray-400)",
                             display: "flex", alignItems: "center", gap: 5
                           }}>
                             {s.label}
@@ -1014,7 +962,6 @@ export default function App() {
                     );
                   })}
                 </div>
-
                 {allDone && (
                   <div style={{ borderTop: "1px solid var(--gray-200)", padding: "12px 14px" }}>
                     <button onClick={exportPPT} disabled={exporting} style={{
@@ -1022,14 +969,12 @@ export default function App() {
                       background: exporting ? "var(--gray-100)" : "var(--gray-900)",
                       color: exporting ? "var(--gray-400)" : "white",
                       borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 500,
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                      transition: "all 0.15s"
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.15s"
                     }}>
                       {exporting ? <><Spin size={12} color="#9ca3af" /> Building deck…</> : "↓ Download PPT report"}
                     </button>
                   </div>
                 )}
-
                 <div style={{ borderTop: "1px solid var(--gray-200)", padding: "10px 14px" }}>
                   <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", marginBottom: 6, letterSpacing: "0.06em" }}>LOG</div>
                   <div ref={logRef} style={{ maxHeight: 110, overflowY: "auto" }}>
@@ -1042,7 +987,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* ── MAIN PANEL ── */}
               <div style={{ overflowY: "auto", background: "var(--white)" }}>
                 {!tab && phase === "running" && (
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16 }}>
@@ -1051,7 +995,6 @@ export default function App() {
                     <div style={{ fontSize: 12, color: "var(--gray-300)", fontFamily: "var(--font-mono)" }}>click any completed stage to preview</div>
                   </div>
                 )}
-
                 {tab && Panel && results[tab] && (
                   <div className="fadeUp" style={{ padding: "32px 40px", maxWidth: 720 }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 28, paddingBottom: 24, borderBottom: "1px solid var(--gray-100)" }}>
@@ -1066,7 +1009,6 @@ export default function App() {
                     <Panel d={results[tab]} />
                   </div>
                 )}
-
                 {phase === "done" && !tab && (
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: 40 }}>
                     <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-400)", letterSpacing: "0.08em", marginBottom: 16 }}>COMPLETE</div>
