@@ -18,38 +18,18 @@ export const config = { runtime: 'edge' };
 // (same endpoint YouTube uses internally for captions)
 async function fetchTranscript(videoId) {
   try {
-    // First get the video page to find caption track URL
-    const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: { 'Accept-Language': 'en-US,en;q=0.9', 'User-Agent': 'Mozilla/5.0' }
-    });
-    const html = await pageRes.text();
-
-    // Extract caption tracks from ytInitialPlayerResponse
-    const captionMatch = html.match(/"captionTracks":\s*(\[.*?\])/);
-    if (!captionMatch) return null;
-
-    const tracks = JSON.parse(captionMatch[1].replace(/\\u0026/g, '&'));
-    const englishTrack = tracks.find(t =>
-      t.languageCode === 'en' || t.languageCode === 'en-US'
-    ) || tracks[0];
-
-    if (!englishTrack?.baseUrl) return null;
-
-    // Fetch the actual transcript XML
-    const transcriptRes = await fetch(englishTrack.baseUrl);
-    const xml = await transcriptRes.text();
-
-    // Parse XML and extract text
-    const textMatches = xml.match(/<text[^>]*>(.*?)<\/text>/g) || [];
-    const cleaned = textMatches
-      .map(t => t.replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim())
-      .filter(Boolean)
-      .join(' ');
-
-    return cleaned.slice(0, 3000); // cap per video
-  } catch {
-    return null;
-  }
+    const supadataKey = process.env.SUPADATA_API_KEY;
+    if (!supadataKey) return null;
+    const res = await Promise.race([
+      fetch(`https://api.supadata.ai/v1/youtube/transcript?videoId=${videoId}&text=true`, {
+        headers: { 'x-api-key': supadataKey }
+      }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))
+    ]);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.content?.slice(0, 3000) || null;
+  } catch { return null; }
 }
 
 export default async function handler(req) {
@@ -90,7 +70,7 @@ export default async function handler(req) {
     const detailsData = await detailsRes.json();
 
     // Fetch transcripts in parallel (with timeout)
-    const transcriptPromises = videoIds.slice(0, 10).map(id =>
+    const transcriptPromises = videoIds.slice(0, 50).map(id =>
       Promise.race([
         fetchTranscript(id),
         new Promise(r => setTimeout(() => r(null), 6000)) // 6s timeout per video
