@@ -525,7 +525,7 @@ const Panels = {
   }
 };
 
-// ─── PPT GENERATOR (unchanged from v2) ───────────────────────────────────────
+// ─── PPT GENERATOR ───────────────────────────────────────────────────────────
 function loadPptxGen() {
   return new Promise((res, rej) => {
     if (window.PptxGenJS) { res(); return; }
@@ -551,14 +551,12 @@ async function generatePPT(results, market) {
   const W = 13.3, H = 7.5;
   const mk = () => ({ type: 'outer', blur: 6, offset: 2, angle: 135, color: '000000', opacity: 0.06 });
 
-  // Cover
   const s1 = pres.addSlide(); s1.background = { color: C.ink };
   s1.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.12, h: H, fill: { color: C.p1 }, line: { color: C.p1 } });
   s1.addText(brand.toUpperCase(), { x: 0.45, y: 1.5, w: 11, h: 2.8, fontSize: 88, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
   if (results.brand?.tagline) s1.addText(`"${results.brand.tagline}"`, { x: 0.45, y: 4.4, w: 10, h: 0.55, fontSize: 16, fontFace: 'Georgia', italic: true, color: '6B7280', margin: 0 });
   s1.addText(`${product}  ·  ${market}`, { x: 0.45, y: 5.2, w: 10, h: 0.35, fontSize: 11, fontFace: 'Calibri', color: '374151', charSpacing: 2, margin: 0 });
 
-  // Gap
   if (results.gap) {
     const s2 = pres.addSlide(); s2.background = { color: C.bg };
     s2.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
@@ -580,7 +578,6 @@ async function generatePPT(results, market) {
     });
   }
 
-  // Brand Identity (dark)
   if (results.brand) {
     const s3 = pres.addSlide(); s3.background = { color: C.ink };
     s3.addText(brand.toUpperCase(), { x: 0.5, y: 0.4, w: 8.5, h: 3, fontSize: 88, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
@@ -600,7 +597,6 @@ async function generatePPT(results, market) {
     s3.addText(results.brand.brandVoice || '', { x: 9.2, y: 3.88, w: 3.4, h: 0.5, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
   }
 
-  // Content Strategy
   if (results.content) {
     const s4 = pres.addSlide(); s4.background = { color: C.bg };
     s4.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
@@ -617,7 +613,6 @@ async function generatePPT(results, market) {
     });
   }
 
-  // Supplier
   if (results.supplier) {
     const s5 = pres.addSlide(); s5.background = { color: C.bg };
     s5.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
@@ -637,7 +632,6 @@ async function generatePPT(results, market) {
     s5.addText((results.supplier.outreachMessage || '').slice(0, 320) + '…', { x: 0.7, y: 3.3, w: 11.8, h: 3.3, fontSize: 10, fontFace: 'Calibri', color: '6B7280', wrap: true, valign: 'top', margin: 0 });
   }
 
-  // Launch roadmap
   const s6 = pres.addSlide(); s6.background = { color: C.ink };
   s6.addText('WHAT HAPPENS NEXT', { x: 0.5, y: 0.5, w: 12, h: 1.1, fontSize: 48, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
   s6.addText('THE 30-DAY LAUNCH PLAYBOOK', { x: 0.5, y: 1.55, w: 12, h: 0.3, fontSize: 10, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
@@ -660,15 +654,14 @@ async function generatePPT(results, market) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [phase, setPhase]     = useState("idle");
-  const [market, setMarket]   = useState("");
-  const [phase, setPhase]     = useState("idle");
-const [market, setMarket]   = useState("");
-const [screen, setScreen]   = useState("agent"); // "agent" or "history"
-  const [stMap, setStMap]     = useState({});
-  const [results, setResults] = useState({});
-  const [tab, setTab]         = useState(null);
-  const [log, setLog]         = useState([]);
+  // ── STATE ── (each variable declared exactly once)
+  const [phase, setPhase]       = useState("idle");
+  const [market, setMarket]     = useState("");
+  const [screen, setScreen]     = useState("agent"); // "agent" or "history"
+  const [stMap, setStMap]       = useState({});
+  const [results, setResults]   = useState({});
+  const [tab, setTab]           = useState(null);
+  const [log, setLog]           = useState([]);
   const [exporting, setExporting] = useState(false);
   const logRef = useRef(null);
 
@@ -735,19 +728,22 @@ const [screen, setScreen]   = useState("agent"); // "agent" or "history"
 
       addLog(`Complete — ${id.winner} is ready`);
 
-// Save to Redis
-try {
-  await fetch('/api/history', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ results: { gap, mine, validate: val, avatar: av, brands: br, brand: id, shopify: sh, content: ct, supplier: su }, market: parentMarket })
-  });
-  addLog(`Saved to history`);
-} catch (e) {
-  addLog(`Save failed: ${e.message}`);
-}
+      // Save to Redis
+      try {
+        await fetch('/api/history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            results: { gap, mine, validate: val, avatar: av, brands: br, brand: id, shopify: sh, content: ct, supplier: su },
+            market: parentMarket
+          })
+        });
+        addLog(`Saved to history`);
+      } catch (e) {
+        addLog(`Save failed: ${e.message}`);
+      }
 
-setPhase("done");
+      setPhase("done");
     } catch (e) { addLog(`Error: ${e.message}`); setPhase("done"); }
   }, []);
 
@@ -782,40 +778,42 @@ setPhase("done");
           <div style={{ width: 24, height: 24, background: "var(--gray-900)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontSize: 12, color: "white" }}>◎</span>
           </div>
-         <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>Brand Gap</span>
+          <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>Brand Gap</span>
 
-<div style={{ display: "flex", gap: 2, marginLeft: 8 }}>
-  {["agent", "history"].map(s => (
-    <button
-      key={s}
-      onClick={() => setScreen(s)}
-      style={{
-        padding: "4px 12px",
-        borderRadius: "var(--radius-sm)",
-        fontSize: 12,
-        fontWeight: 500,
-        background: screen === s ? "var(--gray-100)" : "transparent",
-        color: screen === s ? "var(--gray-900)" : "var(--gray-400)",
-        transition: "all 0.15s",
-        textTransform: "capitalize"
-      }}
-    >{s}</button>
-  ))}
-</div>
-          {brandName && <>
+          {/* ── SCREEN TABS ── */}
+          <div style={{ display: "flex", gap: 2, marginLeft: 8 }}>
+            {["agent", "history"].map(s => (
+              <button
+                key={s}
+                onClick={() => setScreen(s)}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  background: screen === s ? "var(--gray-100)" : "transparent",
+                  color: screen === s ? "var(--gray-900)" : "var(--gray-400)",
+                  transition: "all 0.15s",
+                  textTransform: "capitalize"
+                }}
+              >{s}</button>
+            ))}
+          </div>
+
+          {brandName && screen === "agent" && <>
             <span style={{ color: "var(--gray-300)" }}>·</span>
             <span style={{ fontSize: 13, color: "var(--gray-500)" }}>{brandName}</span>
           </>}
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {phase === "running" && (
+          {phase === "running" && screen === "agent" && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)" }}>
               <Spin size={12} />
               <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--gray-500)" }}>{doneCount}/{STAGES.length}</span>
             </div>
           )}
-          {allDone && (
+          {allDone && screen === "agent" && (
             <button onClick={exportPPT} disabled={exporting} style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "6px 14px", background: exporting ? "var(--gray-100)" : "var(--gray-900)",
@@ -825,7 +823,7 @@ setPhase("done");
               {exporting ? <><Spin size={12} color="#9ca3af" /> Building…</> : "↓ Download PPT"}
             </button>
           )}
-          {phase !== "idle" && (
+          {phase !== "idle" && screen === "agent" && (
             <button onClick={reset} style={{
               padding: "6px 12px", border: "1px solid var(--gray-200)", color: "var(--gray-500)",
               borderRadius: "var(--radius-sm)", fontSize: 12, transition: "all 0.15s"
@@ -837,248 +835,236 @@ setPhase("done");
         </div>
       </div>
 
-      {/* ── PROGRESS BAR ── */}
-      {phase !== "idle" && (
+      {/* ── PROGRESS BAR (agent only) ── */}
+      {phase !== "idle" && screen === "agent" && (
         <div style={{ height: 2, background: "var(--gray-100)" }}>
           <div style={{ height: "100%", width: `${pct}%`, background: "var(--gray-900)", transition: "width 0.6s cubic-bezier(0.16,1,0.3,1)" }} />
         </div>
       )}
 
-      {/* ── IDLE SCREEN ── */}
-      {phase === "idle" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 52px)", padding: "60px 24px" }}>
-          <div style={{ maxWidth: 520, width: "100%", animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards" }}>
-
-            {/* Eyebrow */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: 99, fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-500)", marginBottom: 28, letterSpacing: "0.04em" }}>
-              <span style={{ width: 6, height: 6, background: "#16a34a", borderRadius: "50%", display: "inline-block" }} />
-              Real YouTube + Google Trends data
-            </div>
-
-            {/* Headline */}
-            <h1 style={{ fontSize: 48, fontFamily: "var(--font-serif)", lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--gray-900)", marginBottom: 16 }}>
-              Find where people<br />
-              <span style={{ fontStyle: "italic", color: "var(--gray-400)" }}>already spend,</span><br />
-              but own no brand.
-            </h1>
-
-            <p style={{ fontSize: 15, color: "var(--gray-500)", lineHeight: 1.8, marginBottom: 36 }}>
-              Nike owns <em>sports socks</em>. Nobody owns <em>Pilates socks</em>. Same market, billions in spend, zero brand ownership. Type a parent market — the agent finds the gap.
-            </p>
-
-            {/* Input */}
-            <div style={{ position: "relative", marginBottom: 12 }}>
-              <input
-                value={market}
-                onChange={e => setMarket(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && market.trim() && run(market.trim())}
-                placeholder="fitness, golf, skincare…"
-                style={{
-                  width: "100%", padding: "14px 130px 14px 18px",
-                  border: "1px solid var(--gray-200)", borderRadius: "var(--radius)",
-                  fontSize: 15, color: "var(--gray-900)", background: "var(--white)",
-                  outline: "none", boxShadow: "var(--shadow-sm)",
-                  transition: "border-color 0.15s, box-shadow 0.15s"
-                }}
-                onFocus={e => { e.target.style.borderColor = "var(--gray-400)"; e.target.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.04)"; }}
-                onBlur={e => { e.target.style.borderColor = "var(--gray-200)"; e.target.style.boxShadow = "var(--shadow-sm)"; }}
-              />
-              <button
-                onClick={() => market.trim() && run(market.trim())}
-                disabled={!market.trim()}
-                style={{
-                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                  padding: "8px 16px", background: market.trim() ? "var(--gray-900)" : "var(--gray-200)",
-                  color: market.trim() ? "white" : "var(--gray-400)",
-                  borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 500,
-                  transition: "all 0.15s", cursor: market.trim() ? "pointer" : "default"
-                }}
-              >
-                Run →
-              </button>
-            </div>
-
-            {/* Example tags */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 40 }}>
-              {EXAMPLES.map(ex => (
-                <button key={ex} onClick={() => setMarket(ex)} style={{
-                  padding: "5px 12px", border: "1px solid var(--gray-200)",
-                  borderRadius: 99, fontSize: 12, color: "var(--gray-500)",
-                  background: "white", transition: "all 0.15s"
-                }}
-                  onMouseEnter={e => { e.target.style.borderColor = "var(--gray-400)"; e.target.style.color = "var(--gray-900)"; }}
-                  onMouseLeave={e => { e.target.style.borderColor = "var(--gray-200)"; e.target.style.color = "var(--gray-500)"; }}
-                >{ex}</button>
-              ))}
-            </div>
-
-            {/* What it does */}
-            <div style={{ borderTop: "1px solid var(--gray-100)", paddingTop: 28 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 24px" }}>
-                {[
-                  ["◎", "Brand gap detection", "Scores 5 sub-communities on demand vs saturation"],
-                  ["▶", "Real YouTube data", "Actual transcripts from micro-influencers"],
-                  ["↗", "Google Trends", "12 months of real search momentum"],
-                  ["◆", "Full brand identity", "Name, colors, copy, Shopify brief"],
-                  ["✦", "Viral scripts", "30s transition formula + stitch strategy"],
-                  ["↓", "PPT report", "Branded deck ready to share"],
-                ].map(([icon, label, desc]) => (
-                  <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: 14, color: "var(--gray-400)", paddingTop: 1, flexShrink: 0 }}>{icon}</span>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--gray-900)", marginBottom: 2 }}>{label}</div>
-                      <div style={{ fontSize: 12, color: "var(--gray-400)", lineHeight: 1.5 }}>{desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── RUNNING / DONE ── */}
-      {phase !== "idle" && (
-        <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", height: "calc(100vh - 54px)" }}>
-
-          {/* ── SIDEBAR ── */}
-          <div style={{ borderRight: "1px solid var(--gray-200)", display: "flex", flexDirection: "column", background: "var(--gray-50)" }}>
-
-            {/* Market label */}
-            <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--gray-200)" }}>
-              <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", marginBottom: 4, letterSpacing: "0.08em" }}>MARKET</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", letterSpacing: "-0.01em" }}>{market}</div>
-            </div>
-
-            {/* Stage list */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
-              {STAGES.map(s => {
-                const st = stMap[s.id] || "idle";
-                const active = tab === s.id;
-                const clickable = !!results[s.id];
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => clickable && setTab(s.id)}
-                    style={{
-                      width: "100%", padding: "8px 14px",
-                      background: active ? "var(--white)" : "transparent",
-                      borderLeft: `2px solid ${active ? "var(--gray-900)" : "transparent"}`,
-                      display: "flex", alignItems: "center", gap: 10,
-                      cursor: clickable ? "pointer" : "default", textAlign: "left",
-                      transition: "all 0.12s", borderRight: "none", borderTop: "none", borderBottom: "none"
-                    }}
-                  >
-                    {/* Status indicator */}
-                    <div style={{ width: 20, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {st === "running" && <Spin size={12} color={s.color} />}
-                      {st === "done"    && <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "block" }} />}
-                      {st === "error"   && <span style={{ fontSize: 10, color: "#d97706" }}>~</span>}
-                      {st === "idle"    && <span style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid var(--gray-300)", display: "block" }} />}
-                    </div>
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 12, fontWeight: 500, marginBottom: 1,
-                        color: st === "done" ? (active ? "var(--gray-900)" : "var(--gray-700)") :
-                               st === "running" ? "var(--gray-900)" : "var(--gray-400)",
-                        display: "flex", alignItems: "center", gap: 5
-                      }}>
-                        {s.label}
-                        {s.isData && st === "done" && <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: "#16a34a", background: "#f0fdf4", padding: "1px 5px", borderRadius: 99 }}>real</span>}
-                      </div>
-                      <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", lineHeight: 1.3 }}>{s.desc}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* PPT export */}
-            {allDone && (
-              <div style={{ borderTop: "1px solid var(--gray-200)", padding: "12px 14px" }}>
-                <button onClick={exportPPT} disabled={exporting} style={{
-                  width: "100%", padding: "9px 12px",
-                  background: exporting ? "var(--gray-100)" : "var(--gray-900)",
-                  color: exporting ? "var(--gray-400)" : "white",
-                  borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 500,
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                  transition: "all 0.15s"
-                }}>
-                  {exporting ? <><Spin size={12} color="#9ca3af" /> Building deck…</> : "↓ Download PPT report"}
-                </button>
-              </div>
-            )}
-
-            {/* Log */}
-            <div style={{ borderTop: "1px solid var(--gray-200)", padding: "10px 14px" }}>
-              <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", marginBottom: 6, letterSpacing: "0.06em" }}>LOG</div>
-              <div ref={logRef} style={{ maxHeight: 110, overflowY: "auto" }}>
-                {log.map((l, i) => (
-                  <div key={i} style={{ fontSize: 10, fontFamily: "var(--font-mono)", lineHeight: 1.6, marginBottom: 1, color: i === log.length - 1 ? "var(--gray-700)" : "var(--gray-400)" }}>
-                    {l}{i === log.length - 1 && phase === "running" && <span className="blink" style={{ color: "var(--gray-400)" }}>_</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* ── MAIN PANEL ── */}
-          <div style={{ overflowY: "auto", background: "var(--white)" }}>
-
-            {/* Loading state */}
-            {!tab && phase === "running" && (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16 }}>
-                <Spin size={24} />
-                <div style={{ fontSize: 13, color: "var(--gray-400)", fontFamily: "var(--font-mono)" }}>Scanning "{market}"</div>
-                <div style={{ fontSize: 12, color: "var(--gray-300)", fontFamily: "var(--font-mono)" }}>click any completed stage to preview</div>
-              </div>
-            )}
-
-            {/* Stage result */}
-            {tab && Panel && results[tab] && (
-              <div className="fadeUp" style={{ padding: "32px 40px", maxWidth: 720 }}>
-                {/* Header */}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 28, paddingBottom: 24, borderBottom: "1px solid var(--gray-100)" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 24, fontFamily: "var(--font-serif)", color: "var(--gray-900)", letterSpacing: "-0.01em", marginBottom: 4 }}>{stage?.label}</div>
-                    <div style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--gray-400)" }}>{stage?.desc}</div>
-                  </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontSize: 22, fontFamily: "var(--font-serif)", color: "var(--gray-300)" }}>{doneCount}<span style={{ fontSize: 14 }}>/{STAGES.length}</span></div>
-                  </div>
-                </div>
-                <Panel d={results[tab]} />
-              </div>
-            )}
-
-            {/* Complete screen */}
-            {phase === "done" && !tab && (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: 40 }}>
-                <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-400)", letterSpacing: "0.08em", marginBottom: 16 }}>COMPLETE</div>
-                <div style={{ fontSize: 52, fontFamily: "var(--font-serif)", color: "var(--gray-900)", letterSpacing: "-0.02em", marginBottom: 8 }}>{brandName}</div>
-                <p style={{ fontSize: 14, color: "var(--gray-400)", marginBottom: 32 }}>Select any stage from the sidebar to review.</p>
-                <button onClick={exportPPT} disabled={exporting} style={{
-                  padding: "12px 28px", background: exporting ? "var(--gray-100)" : "var(--gray-900)",
-                  color: exporting ? "var(--gray-400)" : "white",
-                  borderRadius: "var(--radius)", fontSize: 14, fontWeight: 500,
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  cursor: exporting ? "default" : "pointer", transition: "all 0.15s"
-                }}>
-                  {exporting ? <><Spin size={14} color="#9ca3af" /> Building deck…</> : "↓ Download PPT report"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-   {screen === "history" && (
-        <div style={{ height: "calc(100vh - 54px)", overflowY: "auto", background: "var(--white)" }}>
+      {/* ── HISTORY SCREEN ── */}
+      {screen === "history" && (
+        <div style={{ height: "calc(100vh - 52px)", overflowY: "auto", background: "var(--white)" }}>
           <HistoryScreen onViewRun={(id) => {
-            // We'll build full run loading in the next step
+            // Full run loading coming next
             alert(`Run ${id} — full reload coming next`);
           }} />
         </div>
+      )}
+
+      {/* ── AGENT SCREEN ── */}
+      {screen === "agent" && (
+        <>
+          {/* ── IDLE SCREEN ── */}
+          {phase === "idle" && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 52px)", padding: "60px 24px" }}>
+              <div style={{ maxWidth: 520, width: "100%", animation: "fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards" }}>
+
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: 99, fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-500)", marginBottom: 28, letterSpacing: "0.04em" }}>
+                  <span style={{ width: 6, height: 6, background: "#16a34a", borderRadius: "50%", display: "inline-block" }} />
+                  Real YouTube + Google Trends data
+                </div>
+
+                <h1 style={{ fontSize: 48, fontFamily: "var(--font-serif)", lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--gray-900)", marginBottom: 16 }}>
+                  Find where people<br />
+                  <span style={{ fontStyle: "italic", color: "var(--gray-400)" }}>already spend,</span><br />
+                  but own no brand.
+                </h1>
+
+                <p style={{ fontSize: 15, color: "var(--gray-500)", lineHeight: 1.8, marginBottom: 36 }}>
+                  Nike owns <em>sports socks</em>. Nobody owns <em>Pilates socks</em>. Same market, billions in spend, zero brand ownership. Type a parent market — the agent finds the gap.
+                </p>
+
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <input
+                    value={market}
+                    onChange={e => setMarket(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && market.trim() && run(market.trim())}
+                    placeholder="fitness, golf, skincare…"
+                    style={{
+                      width: "100%", padding: "14px 130px 14px 18px",
+                      border: "1px solid var(--gray-200)", borderRadius: "var(--radius)",
+                      fontSize: 15, color: "var(--gray-900)", background: "var(--white)",
+                      outline: "none", boxShadow: "var(--shadow-sm)",
+                      transition: "border-color 0.15s, box-shadow 0.15s"
+                    }}
+                    onFocus={e => { e.target.style.borderColor = "var(--gray-400)"; e.target.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.04)"; }}
+                    onBlur={e => { e.target.style.borderColor = "var(--gray-200)"; e.target.style.boxShadow = "var(--shadow-sm)"; }}
+                  />
+                  <button
+                    onClick={() => market.trim() && run(market.trim())}
+                    disabled={!market.trim()}
+                    style={{
+                      position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                      padding: "8px 16px", background: market.trim() ? "var(--gray-900)" : "var(--gray-200)",
+                      color: market.trim() ? "white" : "var(--gray-400)",
+                      borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 500,
+                      transition: "all 0.15s", cursor: market.trim() ? "pointer" : "default"
+                    }}
+                  >Run →</button>
+                </div>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 40 }}>
+                  {EXAMPLES.map(ex => (
+                    <button key={ex} onClick={() => setMarket(ex)} style={{
+                      padding: "5px 12px", border: "1px solid var(--gray-200)",
+                      borderRadius: 99, fontSize: 12, color: "var(--gray-500)",
+                      background: "white", transition: "all 0.15s"
+                    }}
+                      onMouseEnter={e => { e.target.style.borderColor = "var(--gray-400)"; e.target.style.color = "var(--gray-900)"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "var(--gray-200)"; e.target.style.color = "var(--gray-500)"; }}
+                    >{ex}</button>
+                  ))}
+                </div>
+
+                <div style={{ borderTop: "1px solid var(--gray-100)", paddingTop: 28 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 24px" }}>
+                    {[
+                      ["◎", "Brand gap detection", "Scores 5 sub-communities on demand vs saturation"],
+                      ["▶", "Real YouTube data", "Actual transcripts from micro-influencers"],
+                      ["↗", "Google Trends", "12 months of real search momentum"],
+                      ["◆", "Full brand identity", "Name, colors, copy, Shopify brief"],
+                      ["✦", "Viral scripts", "30s transition formula + stitch strategy"],
+                      ["↓", "PPT report", "Branded deck ready to share"],
+                    ].map(([icon, label, desc]) => (
+                      <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                        <span style={{ fontSize: 14, color: "var(--gray-400)", paddingTop: 1, flexShrink: 0 }}>{icon}</span>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: "var(--gray-900)", marginBottom: 2 }}>{label}</div>
+                          <div style={{ fontSize: 12, color: "var(--gray-400)", lineHeight: 1.5 }}>{desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── RUNNING / DONE ── */}
+          {phase !== "idle" && (
+            <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", height: "calc(100vh - 54px)" }}>
+
+              {/* ── SIDEBAR ── */}
+              <div style={{ borderRight: "1px solid var(--gray-200)", display: "flex", flexDirection: "column", background: "var(--gray-50)" }}>
+                <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--gray-200)" }}>
+                  <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", marginBottom: 4, letterSpacing: "0.08em" }}>MARKET</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", letterSpacing: "-0.01em" }}>{market}</div>
+                </div>
+
+                <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
+                  {STAGES.map(s => {
+                    const st = stMap[s.id] || "idle";
+                    const active = tab === s.id;
+                    const clickable = !!results[s.id];
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => clickable && setTab(s.id)}
+                        style={{
+                          width: "100%", padding: "8px 14px",
+                          background: active ? "var(--white)" : "transparent",
+                          borderLeft: `2px solid ${active ? "var(--gray-900)" : "transparent"}`,
+                          display: "flex", alignItems: "center", gap: 10,
+                          cursor: clickable ? "pointer" : "default", textAlign: "left",
+                          transition: "all 0.12s", borderRight: "none", borderTop: "none", borderBottom: "none"
+                        }}
+                      >
+                        <div style={{ width: 20, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {st === "running" && <Spin size={12} color={s.color} />}
+                          {st === "done"    && <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "block" }} />}
+                          {st === "error"   && <span style={{ fontSize: 10, color: "#d97706" }}>~</span>}
+                          {st === "idle"    && <span style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid var(--gray-300)", display: "block" }} />}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontSize: 12, fontWeight: 500, marginBottom: 1,
+                            color: st === "done" ? (active ? "var(--gray-900)" : "var(--gray-700)") :
+                                   st === "running" ? "var(--gray-900)" : "var(--gray-400)",
+                            display: "flex", alignItems: "center", gap: 5
+                          }}>
+                            {s.label}
+                            {s.isData && st === "done" && <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: "#16a34a", background: "#f0fdf4", padding: "1px 5px", borderRadius: 99 }}>real</span>}
+                          </div>
+                          <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", lineHeight: 1.3 }}>{s.desc}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {allDone && (
+                  <div style={{ borderTop: "1px solid var(--gray-200)", padding: "12px 14px" }}>
+                    <button onClick={exportPPT} disabled={exporting} style={{
+                      width: "100%", padding: "9px 12px",
+                      background: exporting ? "var(--gray-100)" : "var(--gray-900)",
+                      color: exporting ? "var(--gray-400)" : "white",
+                      borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 500,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      transition: "all 0.15s"
+                    }}>
+                      {exporting ? <><Spin size={12} color="#9ca3af" /> Building deck…</> : "↓ Download PPT report"}
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ borderTop: "1px solid var(--gray-200)", padding: "10px 14px" }}>
+                  <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--gray-400)", marginBottom: 6, letterSpacing: "0.06em" }}>LOG</div>
+                  <div ref={logRef} style={{ maxHeight: 110, overflowY: "auto" }}>
+                    {log.map((l, i) => (
+                      <div key={i} style={{ fontSize: 10, fontFamily: "var(--font-mono)", lineHeight: 1.6, marginBottom: 1, color: i === log.length - 1 ? "var(--gray-700)" : "var(--gray-400)" }}>
+                        {l}{i === log.length - 1 && phase === "running" && <span className="blink" style={{ color: "var(--gray-400)" }}>_</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── MAIN PANEL ── */}
+              <div style={{ overflowY: "auto", background: "var(--white)" }}>
+                {!tab && phase === "running" && (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16 }}>
+                    <Spin size={24} />
+                    <div style={{ fontSize: 13, color: "var(--gray-400)", fontFamily: "var(--font-mono)" }}>Scanning "{market}"</div>
+                    <div style={{ fontSize: 12, color: "var(--gray-300)", fontFamily: "var(--font-mono)" }}>click any completed stage to preview</div>
+                  </div>
+                )}
+
+                {tab && Panel && results[tab] && (
+                  <div className="fadeUp" style={{ padding: "32px 40px", maxWidth: 720 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 28, paddingBottom: 24, borderBottom: "1px solid var(--gray-100)" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 24, fontFamily: "var(--font-serif)", color: "var(--gray-900)", letterSpacing: "-0.01em", marginBottom: 4 }}>{stage?.label}</div>
+                        <div style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--gray-400)" }}>{stage?.desc}</div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div style={{ fontSize: 22, fontFamily: "var(--font-serif)", color: "var(--gray-300)" }}>{doneCount}<span style={{ fontSize: 14 }}>/{STAGES.length}</span></div>
+                      </div>
+                    </div>
+                    <Panel d={results[tab]} />
+                  </div>
+                )}
+
+                {phase === "done" && !tab && (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: 40 }}>
+                    <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-400)", letterSpacing: "0.08em", marginBottom: 16 }}>COMPLETE</div>
+                    <div style={{ fontSize: 52, fontFamily: "var(--font-serif)", color: "var(--gray-900)", letterSpacing: "-0.02em", marginBottom: 8 }}>{brandName}</div>
+                    <p style={{ fontSize: 14, color: "var(--gray-400)", marginBottom: 32 }}>Select any stage from the sidebar to review.</p>
+                    <button onClick={exportPPT} disabled={exporting} style={{
+                      padding: "12px 28px", background: exporting ? "var(--gray-100)" : "var(--gray-900)",
+                      color: exporting ? "var(--gray-400)" : "white",
+                      borderRadius: "var(--radius)", fontSize: 14, fontWeight: 500,
+                      display: "inline-flex", alignItems: "center", gap: 8,
+                      cursor: exporting ? "default" : "pointer", transition: "all 0.15s"
+                    }}>
+                      {exporting ? <><Spin size={14} color="#9ca3af" /> Building deck…</> : "↓ Download PPT report"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
