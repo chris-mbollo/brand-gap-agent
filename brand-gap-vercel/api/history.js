@@ -15,8 +15,6 @@
  *   DELETE /api/history?id=xxx — delete a run
  */
 
-export const config = { runtime: 'nodejs' };
-
 // Vercel KV REST client (edge-compatible, no SDK needed)
 const kv = {
   async get(key) {
