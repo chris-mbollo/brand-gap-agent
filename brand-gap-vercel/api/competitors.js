@@ -18,7 +18,7 @@
  *   - verdict: CONFIRMED_GAP / WEAK_GAP / FALSE_GAP
  */
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 function detectBrand(title, brand_name) {
   if (brand_name && brand_name.toLowerCase() !== 'generic' && brand_name.length > 2) return true;
