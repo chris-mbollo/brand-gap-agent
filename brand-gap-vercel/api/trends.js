@@ -16,7 +16,6 @@
  *   - trend direction + momentum score
  */
 
-export const config = { runtime: 'nodejs' };
 
 function scoreTrend(timelineData) {
   if (!timelineData?.length) return { score: 0, direction: 'unknown', momentum: 0 };
