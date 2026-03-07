@@ -767,6 +767,7 @@ export default function App() {
 
       setSt("trends", "running"); addLog(`Fetching Google Trends…`);
       const trendsData = await fetchTrends(gap.winnerProduct);
+      addLog(`Trends raw: ${JSON.stringify(trendsData)?.slice(0, 100)}`);
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
       else { setSt("trends", "error"); addLog(`Trends API unavailable — simulating`); }
       await sleep(1000);
