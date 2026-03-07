@@ -71,7 +71,7 @@ const CSS = `
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function callClaude(prompt, system) {
+async function callClaude(prompt, system, maxTokens = 2000) {
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
       const res = await fetch('/api/claude', {
@@ -79,7 +79,7 @@ async function callClaude(prompt, system) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5',
-          max_tokens: 4000,
+          max_tokens: maxTokens,
           system: system || `You are the sharpest brand gap analyst alive. Find sub-categories inside massive markets where consumers spend freely but NO brand owns the space. Like Pilates socks in fitness — product awareness, zero brand ownership. Return ONLY raw valid JSON. No markdown. No backticks.`,
           messages: [{ role: 'user', content: prompt }]
         })
