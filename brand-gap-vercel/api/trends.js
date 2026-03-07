@@ -1,3 +1,4 @@
+export const config = { runtime: 'edge' };
 /**
  * /api/trends.js
  *
