@@ -397,7 +397,12 @@ const Panels = {
         <StatCard value={d.interpretation?.verdict} label="Timing" color={d.interpretation?.verdict === "PERFECT TIMING" ? "#16a34a" : "#d97706"} />
         <StatCard value={`${compositeScore}/10`} label="Composite Score" />
       </div>
-
+<div style={{ padding: "12px 16px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", marginBottom: 20 }}>
+  <div style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-700)", marginBottom: 4 }}>What is the Composite Score?</div>
+  <div style={{ fontSize: 12, color: "var(--gray-500)", lineHeight: 1.6 }}>
+    Instead of judging timing on one search term, we triangulate 3 signals: the exact product ({d.triangulation?.[0]?.term}), the sub-community ({d.triangulation?.[1]?.term}), and how people refer to it organically. Each is weighted — product counts 50%, community 30%, organic language 20%. A score of 8–10 means all 3 signals agree the timing is right. A score below 5 means demand exists but isn't growing yet.
+  </div>
+</div>
       {/* Triangulation badges */}
       {d.triangulation && (
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 20 }}>
@@ -605,22 +610,33 @@ const Panels = {
   },
 
   shopify: ({ d }) => (
-    <div>
-      <Row k="Domain" v={d.domain} /><Row k="Layout" v={d.layoutInspiration} /><Row k="Theme" v={d.shopifyTheme} />
-      <Divider />
-      <Label>Product description — identity-first</Label>
-      <Card style={{ background: "var(--gray-50)", marginBottom: 16 }}>
-        <p style={{ fontSize: 13, lineHeight: 2, color: "var(--gray-700)" }}>{d.productDescription}</p>
-      </Card>
-      <Label>Conversion elements</Label>
-      {d.conversionElements?.map((e, i) => (
-        <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8, alignItems: "flex-start" }}>
-          <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-400)", minWidth: 22, paddingTop: 1 }}>{String(i + 1).padStart(2, "0")}</span>
-          <span style={{ fontSize: 13, color: "var(--gray-700)", lineHeight: 1.6 }}>{e}</span>
-        </div>
+  <div>
+    <Row k="Domain" v={d.domain} />
+    <Row k="Theme" v={d.shopifyTheme} />
+    <Divider />
+    <Label>Hero section</Label>
+    <Card style={{ padding: "12px 16px", marginBottom: 16 }}>
+      <Row k="Headline" v={d.heroSection?.headline} />
+      <Row k="Subline" v={d.heroSection?.subline} />
+      <Row k="CTA" v={d.heroSection?.cta} />
+    </Card>
+    <Label>Navigation</Label>
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+      {(d.navigation || []).map((n, i) => (
+        <div key={i} style={{ padding: "6px 12px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", fontSize: 12, color: "var(--gray-700)", fontFamily: "var(--font-mono)" }}>{n}</div>
       ))}
     </div>
-  ),
+    <Label>Product description — identity-first</Label>
+    <Card style={{ background: "var(--gray-50)", marginBottom: 16 }}>
+      <p style={{ fontSize: 13, lineHeight: 2, color: "var(--gray-700)" }}>{d.productDescription}</p>
+    </Card>
+    <Divider />
+    <Row k="Upsell logic" v={d.upsellLogic} />
+    <Row k="Email capture" v={d.emailCaptureIdea} />
+    <Row k="SEO title" v={d.seoTitle} />
+    <Row k="SEO description" v={d.seoDescription} />
+  </div>
+),
 
   content: ({ d }) => (
   <div>
@@ -677,30 +693,71 @@ const Panels = {
   </div>
 ),
   supplier: ({ d }) => {
-    const b = d.manufacturingBrief || {};
-    const bud = d.estimatedBudget || {};
-    return (
-      <div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-          {[["MOQ", b.moq], ["COGS", b.targetCOGS], ["Retail", b.suggestedRetail], ["Margin", b.targetGrossMargin], ["Lead time", b.leadTime]].map(([k, v]) => v && <StatCard key={k} value={v} label={k} />)}
+  const b = d.factorySpec || {};
+  const bud = d.budget || {};
+  return (
+    <div>
+      {/* Sourcing Region */}
+      {d.sourcingRegion && (
+        <div style={{ padding: "12px 16px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", marginBottom: 20 }}>
+          <Label>Best sourcing region</Label>
+          <p style={{ fontSize: 12, color: "var(--gray-700)", lineHeight: 1.6 }}>{d.sourcingRegion}</p>
         </div>
-        <Row k="Quality diff" v={b.qualityDifferentiator} />
-        <Divider />
-        <Label>Outreach message — copy and paste</Label>
-        <pre style={{ fontSize: 12, fontFamily: "var(--font-mono)", whiteSpace: "pre-wrap", lineHeight: 1.8, padding: "14px 16px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", color: "var(--gray-700)", marginBottom: 16 }}>{d.outreachMessage}</pre>
-        <Label>Budget estimate</Label>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
-          {Object.entries(bud).map(([k, v]) => (
-            <div key={k} style={{ textAlign: "center", padding: "12px 6px", background: k === "total" ? "var(--gray-900)" : "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)" }}>
-              <div style={{ fontSize: 14, fontFamily: "var(--font-serif)", color: k === "total" ? "white" : "var(--gray-900)", marginBottom: 4 }}>{v}</div>
-              <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: k === "total" ? "var(--gray-500)" : "var(--gray-400)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</div>
-            </div>
-          ))}
-        </div>
+      )}
+
+      {/* Factory specs */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+        {[["MOQ", b.moq], ["COGS", b.targetCOGS], ["Margin", b.margin], ["Lead time", b.leadTime]].map(([k, v]) => v && <StatCard key={k} value={v} label={k} />)}
       </div>
-    );
-  }
-};
+      <Row k="Materials" v={b.materials} />
+
+      <Divider />
+
+      {/* Alibaba search terms */}
+      {d.alibabaTerms?.length > 0 && (
+        <>
+          <Label>Alibaba search terms</Label>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+            {d.alibabaTerms.map((t, i) => (
+              <div key={i} style={{ padding: "6px 12px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", fontSize: 12, color: "var(--gray-700)", fontFamily: "var(--font-mono)" }}>{t}</div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Sample checklist */}
+      {d.sampleChecklist?.length > 0 && (
+        <>
+          <Label>Sample checklist</Label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 16 }}>
+            {d.sampleChecklist.map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", fontSize: 12, color: "var(--gray-700)" }}>
+                <span style={{ color: "#16a34a", fontWeight: 700 }}>✓</span> {s}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <Divider />
+
+      {/* Outreach message */}
+      <Label>Outreach message — copy and paste</Label>
+      <pre style={{ fontSize: 12, fontFamily: "var(--font-mono)", whiteSpace: "pre-wrap", lineHeight: 1.8, padding: "14px 16px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", color: "var(--gray-700)", marginBottom: 16 }}>{d.outreachMessage}</pre>
+
+      {/* Budget */}
+      <Label>Budget estimate</Label>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+        {Object.entries(bud).map(([k, v]) => (
+          <div key={k} style={{ textAlign: "center", padding: "12px 6px", background: k === "total" ? "var(--gray-900)" : "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)" }}>
+            <div style={{ fontSize: 14, fontFamily: "var(--font-serif)", color: k === "total" ? "white" : "var(--gray-900)", marginBottom: 4 }}>{v}</div>
+            <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: k === "total" ? "var(--gray-500)" : "var(--gray-400)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ─── PPT GENERATOR ───────────────────────────────────────────────────────────
 function loadPptxGen() {
