@@ -879,9 +879,9 @@ export default function App() {
   const run = useCallback(async (parentMarket) => {
     setPhase("running");
 
-    const go = async (id, prompt, msg) => {
-      setSt(id, "running"); addLog(msg);
-      const d = await callClaude(prompt);
+   const go = async (id, prompt, msg, maxTokens = 2000) => {
+  setSt(id, "running"); addLog(msg);
+  const d = await callClaude(prompt, undefined, maxTokens);
       if (d._error) { setSt(id, "error"); addLog(`Failed: ${d._error}`); return null; }
       setRes(id, d); setSt(id, "done"); addLog(`Done`);
       await sleep(1000); return d;
