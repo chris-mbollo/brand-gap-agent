@@ -358,28 +358,103 @@ const Panels = {
     </div>
   ),
 
-  trends: ({ d }) => (
+ trends: ({ d }) => {
+  const momentum = d.trend?.momentum || 0;
+  const peakValue = d.trend?.peakValue || 0;
+  const currentValue = d.trend?.currentValue || 0;
+  const score = d.trend?.score || 0;
+  const atPeak = d.trend?.atPeak;
+  const compositeScore = d.compositeScore || score;
+
+  const momentumExplain =
+    momentum > 20  ? "Search interest is growing fast — people are actively discovering this right now. Move quickly." :
+    momentum > 0   ? "Search interest is slowly climbing — the market is warming up. Good early signal." :
+    momentum === 0 ? "Search interest is stable — steady demand exists but no rush yet. You have a window." :
+                     "Search interest is cooling down — either seasonal or fading. Validate before investing.";
+
+  const peakExplain =
+    atPeak ? "Currently at peak interest — maximum visibility right now but competition may follow soon." :
+    currentValue >= peakValue * 0.6 ? "Near peak levels — strong interest with room to grow before mainstream saturation." :
+    "Well below peak — either early stage or recovering. Watch for a rising trend before launching.";
+
+  const brandRiskExplain =
+    d.brandSaturationRisk === 'LOW'    ? "No brands appearing in search — the gap is real and unowned right now." :
+    d.brandSaturationRisk === 'MEDIUM' ? "A few brand names are showing up in searches — someone is moving in. Act fast." :
+                                          "Brands are actively competing here — you'll need strong differentiation to win.";
+
+  return (
     <div>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <StatCard value={d.trend?.direction} label="Direction" color={d.trend?.direction?.includes("RISING") ? "#16a34a" : "var(--gray-900)"} />
         <StatCard value={d.interpretation?.verdict} label="Timing" color={d.interpretation?.verdict === "PERFECT TIMING" ? "#16a34a" : "#d97706"} />
-        <StatCard value={`${d.trend?.score}/10`} label="Opportunity" />
+        <StatCard value={`${compositeScore}/10`} label="Composite Score" />
       </div>
-      <Row k="Momentum" v={d.interpretation?.momentum} />
-      <Row k="Peak value" v={d.trend?.peakValue} />
-      <Row k="Current value" v={d.trend?.currentValue} />
+
+      {/* Triangulation badges */}
+      {d.triangulation && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 20 }}>
+          {d.triangulation.map((t, i) => (
+            <div key={i} style={{ padding: "6px 12px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", display: "flex", gap: 8, alignItems: "center" }}>
+              <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-500)" }}>{t.term}</span>
+              <Badge color={t.score >= 7 ? "#16a34a" : t.score >= 5 ? "#d97706" : "#dc2626"}>{t.score}/10</Badge>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Momentum */}
+      <div style={{ marginBottom: 16 }}>
+        <Row k="Momentum" v={d.interpretation?.momentum} />
+        <div style={{ marginLeft: 126, fontSize: 12, color: "var(--gray-500)", lineHeight: 1.6, fontStyle: "italic" }}>
+          {momentumExplain}
+        </div>
+      </div>
+
+      {/* Peak value */}
+      <div style={{ marginBottom: 16 }}>
+        <Row k="Peak value" v={`${peakValue} / Current: ${currentValue}`} />
+        <div style={{ marginLeft: 126, fontSize: 12, color: "var(--gray-500)", lineHeight: 1.6, fontStyle: "italic" }}>
+          {peakExplain}
+        </div>
+      </div>
+
+      {/* Brand saturation risk */}
+      <div style={{ marginBottom: 16 }}>
+        <Row k="Brand risk" v={d.brandSaturationRisk || "—"} />
+        <div style={{ marginLeft: 126, fontSize: 12, color: "var(--gray-500)", lineHeight: 1.6, fontStyle: "italic" }}>
+          {brandRiskExplain}
+        </div>
+      </div>
+
+      {/* Launch window */}
+      {d.launchWindowOpen !== undefined && (
+        <div style={{ padding: "12px 16px", background: d.launchWindowOpen ? "#f0fdf4" : "#fef9c3", border: `1px solid ${d.launchWindowOpen ? "#16a34a" : "#d97706"}`, borderRadius: "var(--radius-sm)", marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: d.launchWindowOpen ? "#16a34a" : "#d97706", marginBottom: 4 }}>
+            {d.launchWindowOpen ? "✓ Launch window is open" : "⚠ Launch window uncertain"}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--gray-600)", lineHeight: 1.6 }}>
+            {d.interpretation?.recommendation}
+          </div>
+        </div>
+      )}
+
       <Divider />
       <Label>Rising search queries</Label>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {(d.risingQueries || []).slice(0, 6).map((q, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)" }}>
-            <span style={{ flex: 1, fontSize: 12, color: "var(--gray-700)" }}>{q.query}</span>
-            <Badge color="#16a34a">{q.value}</Badge>
-          </div>
-        ))}
-      </div>
+      {(d.risingQueries || []).length === 0 ? (
+        <div style={{ fontSize: 12, color: "var(--gray-400)", fontStyle: "italic" }}>No rising queries detected — very early stage market with minimal search history.</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {(d.risingQueries || []).slice(0, 6).map((q, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)" }}>
+              <span style={{ flex: 1, fontSize: 12, color: "var(--gray-700)" }}>{q.query}</span>
+              <Badge color="#16a34a">{q.value}</Badge>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-  ),
+  );
+},
 
   mine: ({ d }) => (
     <div>
