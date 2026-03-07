@@ -758,7 +758,7 @@ const Panels = {
     </div>
   );
 }
-
+};
 // ─── PPT GENERATOR ───────────────────────────────────────────────────────────
 function loadPptxGen() {
   return new Promise((res, rej) => {
