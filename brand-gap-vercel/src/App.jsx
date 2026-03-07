@@ -105,7 +105,7 @@ async function callClaude(prompt, system) {
 
 async function fetchYouTube(q) {
   try {
-    const res = await fetch(`/api/youtube?q=${encodeURIComponent(q)}&maxResults=50`);
+    const res = await fetch(`/api/youtube?q=${encodeURIComponent(q)}&maxResults=12`);
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }
