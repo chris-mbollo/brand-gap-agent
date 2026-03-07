@@ -1,78 +1,78 @@
 export const config = { runtime: 'edge' };
+
 /**
- * /api/trends.js
- *
- * Serverless function: fetches Google Trends data for a keyword.
- * Uses SerpApi as the intermediary (handles Google's scraping protections).
- *
- * Required env vars:
- *   SERPAPI_KEY — from https://serpapi.com (free tier: 100 searches/month)
- *
- * Usage:
- *   GET /api/trends?q=pilates+grip+socks&geo=US
- *
- * Returns:
- *   - interest over time (12 months)
- *   - related queries (rising + top)
- *   - trend direction + momentum score
+ * /api/trends.js — Triangulated Google Trends analysis
+ * Searches 3 terms in parallel: product + community + problem
+ * Returns composite gap score with seasonality, geography, and brand signal detection
  */
 
-
 function scoreTrend(timelineData) {
-  if (!timelineData?.length) return { score: 0, direction: 'unknown', momentum: 0 };
+  if (!timelineData?.length) return { score: 0, direction: 'unknown', momentum: 0, peakValue: 0, currentValue: 0, atPeak: false };
 
-  const values = timelineData.map(d => d.values?.[0]?.extracted_value ?? d.value ?? 0);
-  const recent = values.slice(-4); // last 4 data points
-  const older = values.slice(0, 4); // first 4 data points
+  const values = timelineData.map(d => d.values?.[0]?.extracted_value ?? d.value ?? 0).filter(v => v > 0);
+  if (!values.length) return { score: 0, direction: 'unknown', momentum: 0, peakValue: 0, currentValue: 0, atPeak: false };
 
-  const recentAvg = recent.reduce((a,b) => a+b, 0) / recent.length;
-  const olderAvg = older.reduce((a,b) => a+b, 0) / older.length;
+  const recent = values.slice(-4);
+  const older = values.slice(0, 4);
+  const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+  const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
   const peakValue = Math.max(...values);
   const currentValue = values[values.length - 1];
-
-  // Momentum: how much recent growth vs older baseline
   const momentum = olderAvg > 0 ? ((recentAvg - olderAvg) / olderAvg) * 100 : 0;
 
-  // Direction
   let direction;
-  if (momentum > 50) direction = 'SHARPLY RISING';
-  else if (momentum > 20) direction = 'STEADILY RISING';
-  else if (momentum > 0) direction = 'SLIGHTLY RISING';
+  if (momentum > 50)       direction = 'SHARPLY RISING';
+  else if (momentum > 20)  direction = 'STEADILY RISING';
+  else if (momentum > 0)   direction = 'SLIGHTLY RISING';
   else if (momentum > -20) direction = 'FLAT';
-  else direction = 'DECLINING';
+  else                     direction = 'DECLINING';
 
-  // Peak proximity (is it at peak or still climbing?)
   const atPeak = currentValue >= peakValue * 0.85;
-  const earlyStage = recentAvg < peakValue * 0.4;
 
-  // Score 0-10: higher = better gap opportunity
-  // Want: rising but not yet at peak mainstream
   let score = 5;
-  if (direction === 'SHARPLY RISING' && !atPeak) score = 9;
+  if (direction === 'SHARPLY RISING' && !atPeak)  score = 9;
   else if (direction === 'STEADILY RISING' && !atPeak) score = 8;
-  else if (direction === 'SHARPLY RISING' && atPeak) score = 6;
-  else if (direction === 'SLIGHTLY RISING') score = 7;
-  else if (direction === 'FLAT') score = 4;
-  else if (direction === 'DECLINING') score = 2;
+  else if (direction === 'SHARPLY RISING' && atPeak)   score = 6;
+  else if (direction === 'SLIGHTLY RISING')             score = 7;
+  else if (direction === 'FLAT')                        score = 4;
+  else if (direction === 'DECLINING')                   score = 2;
 
-  return {
-    score,
-    direction,
-    momentum: Math.round(momentum),
-    recentAvg: Math.round(recentAvg),
-    peakValue,
-    currentValue,
-    atPeak,
-    earlyStage
-  };
+  return { score, direction, momentum: Math.round(momentum), recentAvg: Math.round(recentAvg), peakValue, currentValue, atPeak };
+}
+
+function detectBrandNames(queries) {
+  // If rising queries contain brand-like terms (capitalized, short, no spaces) = saturation incoming
+  const brandSignals = [];
+  const genericSignals = [];
+  for (const q of queries) {
+    const text = q.query || '';
+    const isBrand = /^[A-Z][a-z]+$/.test(text.split(' ')[0]) || text.split(' ').length <= 2 && text === text.toLowerCase() && text.length < 15;
+    if (isBrand) brandSignals.push(text);
+    else genericSignals.push(text);
+  }
+  return { brandSignals, genericSignals };
+}
+
+async function fetchTrendData(query, geo, serpApiKey) {
+  try {
+    const [timelineRes, relatedRes] = await Promise.all([
+      fetch(`https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&geo=${geo}&date=today+12-m&api_key=${serpApiKey}`),
+      fetch(`https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&geo=${geo}&data_type=RELATED_QUERIES&api_key=${serpApiKey}`)
+    ]);
+    const [timelineData, relatedData] = await Promise.all([timelineRes.json(), relatedRes.json()]);
+    if (timelineData.error) return null;
+    return { timelineData, relatedData, query };
+  } catch { return null; }
 }
 
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
-  const query = searchParams.get('q');
-  const geo = searchParams.get('geo') || 'US';
+  const product   = searchParams.get('q');
+  const community = searchParams.get('community') || '';
+  const problem   = searchParams.get('problem') || '';
+  const geo       = searchParams.get('geo') || 'US';
 
-  if (!query) {
+  if (!product) {
     return new Response(JSON.stringify({ error: 'q param required' }), {
       status: 400, headers: { 'Content-Type': 'application/json' }
     });
@@ -85,66 +85,103 @@ export default async function handler(req) {
     });
   }
 
-  try {
-    // Interest over time (past 12 months)
-    const timelineUrl = `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&geo=${geo}&date=today+12-m&api_key=${serpApiKey}`;
-    const timelineRes = await fetch(timelineUrl);
-    const timelineData = await timelineRes.json();
+  // Build 3 search terms — product, community, problem
+  const terms = [product];
+  if (community) terms.push(community);
+  if (problem)   terms.push(problem);
 
-    if (timelineData.error) {
-      return new Response(JSON.stringify({ error: timelineData.error, tip: 'Check SERPAPI_KEY and quota at serpapi.com/manage-api-key' }), {
-        status: 402, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-      });
-    }
+  // Fetch all in parallel
+  const results = await Promise.all(terms.map(t => fetchTrendData(t, geo, serpApiKey)));
+  const valid   = results.filter(Boolean);
 
-    // Related queries
-    const relatedUrl = `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&geo=${geo}&data_type=RELATED_QUERIES&api_key=${serpApiKey}`;
-    const relatedRes = await fetch(relatedUrl);
-    const relatedData = await relatedRes.json();
-
-    const timeline = timelineData.interest_over_time?.timeline_data || [];
-    const risingQueries = relatedData.related_queries?.rising || [];
-    const topQueries = relatedData.related_queries?.top || [];
-
-    const trendScore = scoreTrend(timeline);
-
-    // Extract brand signals from related queries
-    // If top queries include brand names → saturation. If generic → gap.
-    const allQueryTexts = [...risingQueries, ...topQueries].map(q => q.query?.toLowerCase() || '');
-    const brandSignals = allQueryTexts.filter(q =>
-      !q.includes(query.toLowerCase()) &&
-      (q.includes('brand') || q.includes('best') || q.includes('review') || q.length < 20)
-    );
-
-    return new Response(JSON.stringify({
-      query,
-      geo,
-      trend: trendScore,
-      timelineMonths: timeline.length,
-      timelineData: timeline.map(d => ({
-        date: d.date,
-        value: d.values?.[0]?.extracted_value || 0
-      })),
-      risingQueries: risingQueries.slice(0, 8).map(q => ({ query: q.query, value: q.extracted_value })),
-      topQueries: topQueries.slice(0, 8).map(q => ({ query: q.query, value: q.extracted_value })),
-      brandSignalCount: brandSignals.length,
-      interpretation: {
-        direction: trendScore.direction,
-        opportunityScore: trendScore.score,
-        momentum: `${trendScore.momentum > 0 ? '+' : ''}${trendScore.momentum}% vs 3 months ago`,
-        verdict: trendScore.score >= 8 ? 'PERFECT TIMING' : trendScore.score >= 6 ? 'GOOD TIMING' : trendScore.score >= 4 ? 'BORDERLINE' : 'TOO LATE'
-      }
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 's-maxage=86400' // cache 24 hours
-      }
-    });
-
-  } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500, headers: { 'Content-Type': 'application/json' }
+  if (!valid.length) {
+    return new Response(JSON.stringify({ error: 'No trend data returned' }), {
+      status: 502, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
   }
+
+  // Score each term
+  const scored = valid.map(r => {
+    const timeline      = r.timelineData.interest_over_time?.timeline_data || [];
+    const risingQueries = r.relatedData.related_queries?.rising || [];
+    const topQueries    = r.relatedData.related_queries?.top || [];
+    const trendScore    = scoreTrend(timeline);
+    const { brandSignals, genericSignals } = detectBrandNames(risingQueries);
+
+    return {
+      term: r.query,
+      trend: trendScore,
+      risingQueries: risingQueries.slice(0, 8).map(q => ({ query: q.query, value: q.extracted_value })),
+      topQueries: topQueries.slice(0, 8).map(q => ({ query: q.query, value: q.extracted_value })),
+      brandSignals,
+      genericSignals,
+      timelineData: timeline.map(d => ({ date: d.date, value: d.values?.[0]?.extracted_value || 0 }))
+    };
+  });
+
+  // Composite score — weighted: product (50%) + community (30%) + problem (20%)
+  const weights   = [0.5, 0.3, 0.2];
+  const composite = Math.round(
+    scored.reduce((sum, s, i) => sum + s.trend.score * (weights[i] || 0.2), 0)
+  );
+
+  // Best signal = highest scoring term
+  const best = scored.reduce((a, b) => a.trend.score > b.trend.score ? a : b);
+
+  // Brand saturation signal — are brands appearing in rising queries?
+  const allBrandSignals   = scored.flatMap(s => s.brandSignals);
+  const allGenericSignals = scored.flatMap(s => s.genericSignals);
+  const brandSaturationRisk = allBrandSignals.length > 2 ? 'HIGH' : allBrandSignals.length > 0 ? 'MEDIUM' : 'LOW';
+
+  // Launch window — seasonality detection
+  const productTimeline = scored[0]?.timelineData || [];
+  const recentMonths    = productTimeline.slice(-8);
+  const isRisingNow     = recentMonths.length > 1 &&
+    recentMonths[recentMonths.length - 1].value > recentMonths[0].value;
+
+  const verdict =
+    composite >= 8 ? 'PERFECT TIMING' :
+    composite >= 6 ? 'GOOD TIMING' :
+    composite >= 4 ? 'BORDERLINE' : 'TOO LATE OR TOO EARLY';
+
+  return new Response(JSON.stringify({
+    product,
+    geo,
+    // Primary signal (backwards compatible)
+    trend: best.trend,
+    risingQueries: best.risingQueries,
+    topQueries: best.topQueries,
+    brandSignalCount: allBrandSignals.length,
+    // New triangulated data
+    compositeScore: composite,
+    triangulation: scored.map(s => ({
+      term:        s.term,
+      score:       s.trend.score,
+      direction:   s.trend.direction,
+      momentum:    s.trend.momentum,
+      brandSignals: s.brandSignals,
+      genericSignals: s.genericSignals.slice(0, 5)
+    })),
+    brandSaturationRisk,
+    isRisingNow,
+    launchWindowOpen: isRisingNow && brandSaturationRisk !== 'HIGH',
+    interpretation: {
+      direction:        best.trend.direction,
+      opportunityScore: composite,
+      momentum:         `${best.trend.momentum > 0 ? '+' : ''}${best.trend.momentum}% vs 3 months ago`,
+      verdict,
+      brandRisk:        brandSaturationRisk,
+      recommendation:   brandSaturationRisk === 'LOW' && composite >= 6
+        ? 'Move fast — low brand saturation with rising demand'
+        : brandSaturationRisk === 'HIGH'
+        ? 'Brands are moving in — differentiate immediately or pick a different gap'
+        : 'Monitor closely — window is open but not peak yet'
+    }
+  }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 's-maxage=3600'
+    }
+  });
 }
