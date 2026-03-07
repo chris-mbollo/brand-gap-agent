@@ -725,6 +725,63 @@ async function generatePPT(results, market) {
     });
   }
 
+if (results.trends) {
+  const s2b = pres.addSlide(); s2b.background = { color: C.bg };
+  s2b.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
+  s2b.addText('MARKET TIMING', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
+
+  // Score cards
+  const trendStats = [
+    ['COMPOSITE SCORE', `${results.trends.compositeScore || results.trends.trend?.score}/10`],
+    ['DIRECTION', results.trends.trend?.direction || '—'],
+    ['BRAND RISK', results.trends.brandSaturationRisk || '—'],
+    ['VERDICT', results.trends.interpretation?.verdict || '—']
+  ];
+  trendStats.forEach(([k, v], i) => {
+    s2b.addShape(pres.shapes.RECTANGLE, { x: 0.5 + (i * 3.1), y: 1.08, w: 2.9, h: 0.82, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
+    s2b.addText(String(v || '—'), { x: 0.5 + (i * 3.1), y: 1.1, w: 2.9, h: 0.5, fontSize: 16, fontFace: 'Georgia', bold: true, color: C.ink, align: 'center', valign: 'middle', margin: 0 });
+    s2b.addText(k, { x: 0.5 + (i * 3.1), y: 1.62, w: 2.9, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', align: 'center', charSpacing: 2, margin: 0 });
+  });
+
+  // Trend chart — draw as a bar chart using rectangles
+  const timeline = (results.trends.timelineData || []).filter(d => d.value > 0).slice(-24);
+  if (timeline.length > 0) {
+    const chartX = 0.5, chartY = 2.1, chartW = 12.3, chartH = 2.8;
+    const maxVal = Math.max(...timeline.map(d => d.value));
+    const barW = (chartW / timeline.length) * 0.7;
+    const gap = (chartW / timeline.length) * 0.3;
+
+    // Chart background
+    s2b.addShape(pres.shapes.RECTANGLE, { x: chartX, y: chartY, w: chartW, h: chartH, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
+
+    // Bars
+    timeline.forEach((d, i) => {
+      const barH = (d.value / maxVal) * (chartH - 0.3);
+      const x = chartX + (i * (barW + gap));
+      const y = chartY + chartH - barH - 0.1;
+      const isRecent = i >= timeline.length - 4;
+      s2b.addShape(pres.shapes.RECTANGLE, {
+        x, y, w: barW, h: barH,
+        fill: { color: isRecent ? C.p1 : 'D1D5DB' },
+        line: { color: isRecent ? C.p1 : 'D1D5DB' }
+      });
+    });
+
+    s2b.addText('12-month search interest (darker = most recent)', { x: chartX, y: chartY + chartH + 0.05, w: chartW, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', align: 'center', margin: 0 });
+  }
+
+  // Plain English explanation
+  const momentum = results.trends.trend?.momentum || 0;
+  const explanation =
+    momentum > 20  ? "Search interest is growing fast — people are actively discovering this right now. Move quickly before brands move in." :
+    momentum > 0   ? "Search interest is slowly climbing. The market is warming up — good early signal for a first-mover brand." :
+    momentum === 0 ? "Search interest is stable with steady demand. No urgency but the gap is real and unowned." :
+                     "Search interest has cooled. Validate demand carefully before committing inventory budget.";
+
+  s2b.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 5.2, w: 12.3, h: 0.9, fill: { color: '1F2937' }, line: { color: '374151' } });
+  s2b.addText(explanation, { x: 0.7, y: 5.2, w: 11.8, h: 0.9, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
+}
+  
   if (results.brand) {
     const s3 = pres.addSlide(); s3.background = { color: C.ink };
     s3.addText(brand.toUpperCase(), { x: 0.5, y: 0.4, w: 8.5, h: 3, fontSize: 88, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
