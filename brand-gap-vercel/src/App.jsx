@@ -932,10 +932,10 @@ export default function App() {
       const sh = await go("shopify", P.shopify(id.winner, gap.winnerProduct, gap.winnerSubCommunity, av.personaName), `Writing website brief…`);
       if (!sh) { setPhase("done"); return; }
 
-      const ct = await go("content", P.content(id.winner, gap.winnerProduct, gap.winnerSubCommunity, av.personaName, av.coreIdentity), `Writing viral scripts…`);
+      const ct = await go("content", P.content(id.winner, gap.winnerProduct, gap.winnerSubCommunity, av.personaName, av.coreIdentity), `Writing viral scripts…`, 1000);
       if (!ct) { setPhase("done"); return; }
 
-      const su = await go("supplier", P.supplier(id.winner, gap.winnerProduct, gap.winnerSubCommunity, val.suggestedRetailPrice), `Building supplier pack…`);
+      const su = await go("supplier", P.supplier(id.winner, gap.winnerProduct, gap.winnerSubCommunity, val.suggestedRetailPrice), `Building supplier pack…`, 1000);
       if (!su) { setPhase("done"); return; }
 
       addLog(`Complete — ${id.winner} is ready`);
