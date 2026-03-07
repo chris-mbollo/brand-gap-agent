@@ -6,7 +6,7 @@ async function fetchTranscript(videoId) {
     if (!supadataKey) return null;
     const res = await fetch(`https://api.supadata.ai/v1/youtube/transcript?videoId=${videoId}&text=true`, {
       headers: { 'x-api-key': supadataKey },
-      signal: AbortSignal.timeout(25000)
+      signal: AbortSignal.timeout(8000)
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -41,6 +41,7 @@ export default async function handler(req) {
     });
 
     const videoIds = searchData.items.map(v => v.id?.videoId).filter(Boolean);
+    const transcriptIds = videoIds.slice(0, 3);
 
     const detailsRes  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(',')}&key=${apiKey}`);
     const detailsData = await detailsRes.json();
@@ -48,8 +49,8 @@ export default async function handler(req) {
     // Fetch transcripts in batches of 10
     const transcripts = new Array(videoIds.length).fill(null);
     const batchSize = 10;
-    for (let i = 0; i < videoIds.length; i += batchSize) {
-      const batch   = videoIds.slice(i, i + batchSize);
+    for (let i = 0; i < transcriptIds.length; i += batchSize) {
+      const batch   = transcriptIds.slice(i, i + batchSize);
       const results = await Promise.all(batch.map(id => fetchTranscript(id)));
       results.forEach((r, j) => { transcripts[i + j] = r; });
     }
