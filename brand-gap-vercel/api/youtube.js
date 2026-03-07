@@ -6,7 +6,7 @@ async function fetchTranscript(videoId) {
     if (!supadataKey) return null;
     const res = await fetch(`https://api.supadata.ai/v1/youtube/transcript?videoId=${videoId}&text=true`, {
       headers: { 'x-api-key': supadataKey },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(25000)
     });
     if (!res.ok) return null;
     const data = await res.json();
