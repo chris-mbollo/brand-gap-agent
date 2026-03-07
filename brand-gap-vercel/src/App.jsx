@@ -756,7 +756,7 @@ export default function App() {
 
     try {
       const gap = await go("gap", P.gap(parentMarket), `Scanning "${parentMarket}" for brand gaps…`);
-      if (!gap) { setPhase("done"); return; }
+      if (!gap) { setPhase("idle"); addLog(`Try a more specific market — e.g. pilates, golf, skincare`); return; }
       addLog(`Found: ${gap.winnerProduct} in ${gap.winnerSubCommunity}`);
 
       setSt("youtube", "running"); addLog(`Fetching YouTube transcripts…`);
@@ -828,7 +828,7 @@ export default function App() {
   const brandName = results.brand?.winner;
   const Panel     = tab ? Panels[tab] : null;
   const stage     = tab ? STAGES.find(s => s.id === tab) : null;
-  const EXAMPLES  = ["fitness", "golf", "skincare", "outdoor", "cycling", "yoga", "running", "surf"];
+ const EXAMPLES = ["fitness", "pilates", "golf", "skincare", "haircare", "running", "cycling", "hiking", "tennis", "padel", "pickleball", "matcha", "coffee", "nutrition", "gut health", "meditation", "sleep", "journaling", "dogs", "baby", "men's grooming", "camping", "climbing"];
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--white)", color: "var(--gray-900)", fontFamily: "var(--font-sans)" }}>
