@@ -111,9 +111,10 @@ async function fetchYouTube(q) {
   } catch { return null; }
 }
 
-async function fetchTrends(q) {
+async function fetchTrends(q, community = '', problem = '') {
   try {
-    const res = await fetch(`/api/trends?q=${encodeURIComponent(q)}`);
+    const params = new URLSearchParams({ q, community, problem });
+    const res = await fetch(`/api/trends?${params}`);
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }
@@ -766,7 +767,7 @@ export default function App() {
       await sleep(1000);
 
       setSt("trends", "running"); addLog(`Fetching Google Trends…`);
-      const trendsData = await fetchTrends(gap.winnerProduct);
+      const trendsData = await fetchTrends(gap.winnerProduct, gap.winnerSubCommunity, gap.howPeopleReferToIt);
       addLog(`Trends raw: ${JSON.stringify(trendsData)?.slice(0, 100)}`);
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
       else { setSt("trends", "error"); addLog(`Trends API unavailable — simulating`); }
