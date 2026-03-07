@@ -866,7 +866,13 @@ if (results.trends) {
                      "Search interest has cooled. Validate demand carefully before committing inventory budget.";
 
   s2b.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 5.2, w: 12.3, h: 0.9, fill: { color: '1F2937' }, line: { color: '374151' } });
-  s2b.addText(explanation, { x: 0.7, y: 5.2, w: 11.8, h: 0.9, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
+  s2b.addText(explanation, { x: 0.7, y: 5.2, w: 7.5, h: 0.9, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
+
+// Composite score explanation box
+const compositeScore = results.trends.compositeScore || results.trends.trend?.score || 0;
+const compositeExplain = `Composite Score ${compositeScore}/10: Triangulated from 3 signals — product search (50%), sub-community search (30%), and organic language (20%). A score of 8–10 means all signals agree timing is right. Below 5 means demand exists but isn't growing yet.`;
+s2b.addShape(pres.shapes.RECTANGLE, { x: 8.4, y: 5.2, w: 4.4, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
+s2b.addText(compositeExplain, { x: 8.5, y: 5.2, w: 4.2, h: 0.9, fontSize: 8, fontFace: 'Calibri', color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
 }
   
   if (results.brand) {
