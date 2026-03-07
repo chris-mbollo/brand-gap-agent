@@ -220,9 +220,9 @@ Return ONLY JSON: {"domain":"suggested.com","heroSection":{"headline":"text","su
 
 Return ONLY JSON: {"stitchVideo":{"findQuery":"search term to find existing viral video to stitch","whyItWorks":"why this sets up the product perfectly"},"heroScript":{"hook_0_3s":"hook","setup_3_30s":"build tension","reveal_30s":"X-FACTOR product reveal","cta_30_60s":"close + CTA","viralMechanic":"why algorithm pushes this"},"retargetingAd":{"headline":"headline","body":"2 sentences","cta":"button text"}}`,
  
-  supplier: (brand, product, sub, price) => `Supplier pack for "${brand}" / "${product}" in "${sub}". Retail: ${price}. Sourcing from China — provide factory-ready specs.
+  supplier: (brand, product, sub, price) => `Supplier sourcing pack for "${brand}" / "${product}". Retail target: ${price}. Founder may be anywhere in the world — make this actionable globally.
 
-Return ONLY JSON: {"manufacturingBrief":{"variants":["v1","v2"],"colorways":["c1","c2"],"customizations":["diff1","diff2"],"logoPlacement":"instructions","packaging":"unboxing brief","targetCOGS":"$X-$X","suggestedRetail":"${price}","targetGrossMargin":"XX%","moq":"XXX units","materials":"specs","leadTime":"X-X weeks"},"alibabaStrategy":{"searchTerms":["t1","t2","t3"],"negotiationLeverage":"how to use competing quotes"},"outreachMessage":"full copy-paste message in English","sampleProcess":"what to check","redFlags":["rf1","rf2"],"estimatedBudget":{"inventory":"$X,XXX","photography":"$1,500","branding":"$500","ads":"$2,000","total":"$X,XXX"}}`,
+Return ONLY JSON: {"sourcingRegion":{"bestCity":"best Chinese city/market for this product","why":"why this region specializes in this","backupCity":"second option"},"factoryBrief":{"productSpec":"exact materials and construction","moq":"XXX units","targetCOGS":"$X-$X","grossMargin":"XX%","leadTime":"X-X weeks","customizations":["c1","c2"],"packagingSpec":"unboxing brief","logoPlacement":"exact instructions"},"alibabaSearchTerms":["t1","t2","t3"],"outreachMessage":"copy-paste message in English ready to send","sampleChecklist":["s1","s2","s3"],"negotiationLeverage":"how to use competing quotes to drive price down","estimatedBudget":{"inventory":"$X,XXX","photography":"$500-1,500","ads":"$2,000","total":"$X,XXX"}}`,
 };
 
 // ─── STAGES ───────────────────────────────────────────────────────────────────
