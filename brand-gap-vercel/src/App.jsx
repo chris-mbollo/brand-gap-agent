@@ -121,9 +121,80 @@ async function fetchTrends(q) {
 
 // ─── PROMPTS ──────────────────────────────────────────────────────────────────
 const P = {
-  gap: (market) => `Market: "${market}". Find the single best brand gap — unbranded sub-category with real spend. Like Pilates socks: everyone buys them, nobody owns the brand.
-Return ONLY JSON: {"parentMarket":"${market}","subCommunities":[{"name":"n","growthSignal":"strong","products":["p1"]},{"name":"n","growthSignal":"moderate","products":["p1"]},{"name":"n","growthSignal":"emerging","products":["p1"]}],"winnerSubCommunity":"name","winnerProduct":"specific product","gapScore":9,"whyThisGap":"2 sentences","brandSaturation":"VERY LOW","howPeopleReferToIt":"phrase","dominantBrands":["none"],"parentMarketSize":"$XB","cagr":"X%","youtubeSearchTerm":"search term"}`,
+  gap: (market) => `You are the sharpest brand gap analyst alive. Your job is to find the single best unbranded sub-category inside "${market}" — a pocket where consumers already spend freely but no brand owns the space.
 
+The Pilates socks model: Nike owns "sports socks." Nobody owns "Pilates socks." Same market, same spend, zero brand ownership. That's the gap.
+
+---
+
+WINNER PRODUCT — be hyper-specific:
+- Bad: "golf towel" (too generic, Amazon has 400 brands)
+- Bad: "yoga mat" (Lululemon, Manduka — saturated)
+- Good: "microfiber waffle-weave golf towel" → even better: "magnetic golf towel" (specific form factor, no brand owns it)
+- Good: "reformer grip socks" (not just "Pilates socks" — the sub-niche within the sub-niche)
+The winner is a product people already buy generically, where nobody has built a brand identity around it yet.
+
+---
+
+WHY THIS GAP — 2 sentences, make them count:
+- Sentence 1: What's the structural reason no brand owns this yet? (too niche for big players, too new, spun off from a trend)
+- Sentence 2: Why is NOW the right timing window? (community just crossed a growth inflection, search volume rising, no incumbent with real brand equity)
+- Bad: "People buy golf towels and there's no dominant brand."
+- Good: "The disc golf community has exploded 40% YoY but spawned from a demographic that rejects traditional golf branding — no brand has crossed over with disc-golf-native identity. Search volume for disc golf accessories is at an all-time high while brand saturation remains near zero."
+
+---
+
+GAP SCORE (1–10) — score on these 4 axes, average them:
+1. Spend evidence: Do people already buy this? (10 = proven category spend, 1 = hypothetical)
+2. Brand vacuum: How empty is the brand landscape? (10 = zero recognizable brands, 1 = 3+ funded competitors)
+3. Community identity: Does the sub-community have a strong self-identity to attach a brand to? (10 = tribal, 1 = generic hobbyists)
+4. Timing: Early adopter phase or already mainstream? (10 = innovators/early adopters, 1 = late majority)
+A 9/10 means: proven spend + zero brands + strong tribe + early timing. Don't inflate scores — a 7 is a solid gap.
+
+---
+
+YOUTUBE SEARCH TERM — this is critical and most people get it wrong:
+The term must return community lifestyle videos, NOT product listicles or shopping content.
+
+Why this matters: Product searches ("best golf towel") return affiliate review videos with no organic product mentions and no transcripts worth analyzing. Community searches ("my disc golf bag setup") return creator vlogs where products are mentioned casually, authentically, and with real language — which is the signal we need.
+
+Rules:
+- Must reflect how the sub-community talks about their lifestyle, not how a shopper searches for a product
+- Should return videos where the product would appear incidentally, not as the subject
+- Avoid single nouns ("golf"), brand names, or "best/top/review" framing
+- Aim for the title pattern a micro-influencer (5k–100k subs) would use
+
+Bad → Good examples:
+- "golf towel" → "what's in my golf bag 2024"
+- "yoga mat" → "my morning reformer Pilates routine"
+- "running gear" → "marathon training week in my life"
+- "cycling accessories" → "my gravel bike setup and what I carry"
+- "skincare products" → "my minimalist skincare routine glass skin"
+
+The term should feel like something a real person typed into YouTube to find community content, not a product.
+
+---
+
+Return ONLY valid JSON — no markdown, no backticks:
+{
+  "parentMarket": "${market}",
+  "subCommunities": [
+    {"name": "specific sub-community name", "growthSignal": "strong", "products": ["specific product"]},
+    {"name": "specific sub-community name", "growthSignal": "moderate", "products": ["specific product"]},
+    {"name": "specific sub-community name", "growthSignal": "emerging", "products": ["specific product"]}
+  ],
+  "winnerSubCommunity": "name",
+  "winnerProduct": "hyper-specific product — form factor, material, or use-case level",
+  "gapScore": 9,
+  "gapScoreBreakdown": {"spendEvidence": 9, "brandVacuum": 10, "communityIdentity": 8, "timing": 9},
+  "whyThisGap": "Structural reason no brand owns this yet. Why NOW is the timing window.",
+  "brandSaturation": "VERY LOW",
+  "howPeopleReferToIt": "exact generic phrase with no brand name",
+  "dominantBrands": ["none yet"],
+  "parentMarketSize": "$XB",
+  "cagr": "X%",
+  "youtubeSearchTerm": "community lifestyle search term a micro-influencer would use as a video title"
+}`,
   mine: (sub, product, ytData) => ytData?.corpus
     ? `You have REAL YouTube transcript data from ${ytData.videosWithTranscripts} videos in the "${sub}" community.\n\nTranscript corpus:\n---\n${ytData.corpus.slice(0, 18000)}\n---\n\nAnalyze for "${product}" brand gap signals. Find generic language (no brand names), frustration signals, exact phrases people use.\nReturn ONLY JSON: {"transcriptsAnalyzed":${ytData.videosWithTranscripts},"dataSource":"REAL_YOUTUBE","keyQuotes":["exact real quote 1","exact real quote 2","exact real quote 3"],"productMentions":[{"product":"${product}","genericLanguage":"phrase","mentionCount":8,"brandAwareness":"NONE/LOW","buyingIntent":"HIGH/MED/LOW"},{"product":"adjacent 1","genericLanguage":"phrase","mentionCount":4,"brandAwareness":"LOW","buyingIntent":"MED"},{"product":"adjacent 2","genericLanguage":"phrase","mentionCount":3,"brandAwareness":"LOW","buyingIntent":"LOW"}],"verdict":"PRODUCT AWARE, NOT BRAND AWARE","confirmation":"one sentence based on real data","earlyAdopterProfile":"describe based on actual creators"}`
     : `Analyze the "${sub}" community for "${product}" brand gap signals based on your knowledge.\nReturn ONLY JSON: {"transcriptsAnalyzed":0,"dataSource":"SIMULATED","keyQuotes":["quote 1","quote 2","quote 3"],"productMentions":[{"product":"${product}","genericLanguage":"phrase","mentionCount":8,"brandAwareness":"NONE","buyingIntent":"HIGH"},{"product":"adjacent 1","genericLanguage":"phrase","mentionCount":4,"brandAwareness":"LOW","buyingIntent":"MED"},{"product":"adjacent 2","genericLanguage":"phrase","mentionCount":2,"brandAwareness":"LOW","buyingIntent":"LOW"}],"verdict":"PRODUCT AWARE, NOT BRAND AWARE","confirmation":"simulated — YouTube API unavailable","earlyAdopterProfile":"description"}`,
