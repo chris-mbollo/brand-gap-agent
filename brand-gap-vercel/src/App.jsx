@@ -78,7 +78,7 @@ async function callClaude(prompt, system) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5',
           max_tokens: 4000,
           system: system || `You are the sharpest brand gap analyst alive. Find sub-categories inside massive markets where consumers spend freely but NO brand owns the space. Like Pilates socks in fitness — product awareness, zero brand ownership. Return ONLY raw valid JSON. No markdown. No backticks.`,
           messages: [{ role: 'user', content: prompt }]
