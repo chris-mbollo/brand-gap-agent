@@ -623,37 +623,59 @@ const Panels = {
   ),
 
   content: ({ d }) => (
-    <div>
-      {d.viralScripts?.map((v, i) => (
-        <Card key={i} style={{ marginBottom: 16, padding: 0, overflow: "hidden" }}>
-          <div style={{ padding: "12px 16px", background: "var(--gray-900)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: "var(--white)" }}>{v.title}</span>
-            <Badge color="white">{v.platform}</Badge>
-          </div>
-          <div style={{ padding: "12px 16px", background: "var(--gray-50)", borderBottom: "1px solid var(--gray-200)" }}>
-            <Label>Stitch concept</Label>
-            <p style={{ fontSize: 12, color: "var(--gray-600)", lineHeight: 1.6 }}>{v.stitchConcept}</p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            {[["Hook 0–3s", v.hook_0_3s, "#dc2626"], ["Setup 3–30s", v.setup_3_30s, "var(--gray-500)"], ["⚡ 30s X-Factor", v.transition_30s, "#d97706"], ["Close 30–60s", v.close_30_60s, "var(--gray-500)"]].map(([lbl, val, c], j) => (
-              <div key={j} style={{ padding: "12px 16px", borderRight: j % 2 === 0 ? "1px solid var(--gray-200)" : "none", borderBottom: j < 2 ? "1px solid var(--gray-200)" : "none" }}>
-                <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: c, letterSpacing: "0.06em", marginBottom: 6 }}>{lbl}</div>
-                <p style={{ fontSize: 12, color: "var(--gray-700)", lineHeight: 1.7 }}>{val}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: "10px 16px", borderTop: "1px solid var(--gray-200)", background: "var(--gray-50)" }}>
-            <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-400)" }}>Mechanic: </span>
-            <span style={{ fontSize: 11, color: "var(--gray-600)", fontStyle: "italic" }}>{v.viralMechanic}</span>
-          </div>
-        </Card>
-      ))}
-      <Divider />
-      <Row k="Retarget trigger" v={d.retargetingStrategy?.trigger} />
-      <Row k="Expected CVR" v={d.retargetingStrategy?.expectedCVR} />
-    </div>
-  ),
+  <div>
+    {/* Stitch Video */}
+    {d.stitchVideo && (
+      <Card style={{ marginBottom: 16, padding: 0, overflow: "hidden" }}>
+        <div style={{ padding: "12px 16px", background: "var(--gray-900)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--white)" }}>Stitch Video to Find</span>
+          <Badge color="white">STEP 1</Badge>
+        </div>
+        <div style={{ padding: "12px 16px" }}>
+          <Label>Search for</Label>
+          <p style={{ fontSize: 12, color: "var(--gray-700)", lineHeight: 1.6, marginBottom: 10 }}>{d.stitchVideo.findQuery}</p>
+          <Label>Why it works</Label>
+          <p style={{ fontSize: 12, color: "var(--gray-600)", lineHeight: 1.6 }}>{d.stitchVideo.whyItWorks}</p>
+        </div>
+      </Card>
+    )}
 
+    {/* Hero Script */}
+    {d.heroScript && (
+      <Card style={{ marginBottom: 16, padding: 0, overflow: "hidden" }}>
+        <div style={{ padding: "12px 16px", background: "var(--gray-900)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--white)" }}>Hero Script</span>
+          <Badge color="white">STEP 2</Badge>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+          {[["Hook 0–3s", d.heroScript.hook_0_3s, "#dc2626"], ["Build 3–30s", d.heroScript.setup_3_30s, "var(--gray-500)"], ["⚡ 30s Reveal", d.heroScript.reveal_30s, "#d97706"], ["CTA 30–60s", d.heroScript.cta_30_60s, "var(--gray-500)"]].map(([lbl, val, c], j) => (
+            <div key={j} style={{ padding: "12px 16px", borderRight: j % 2 === 0 ? "1px solid var(--gray-200)" : "none", borderBottom: j < 2 ? "1px solid var(--gray-200)" : "none" }}>
+              <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: c, letterSpacing: "0.06em", marginBottom: 6 }}>{lbl}</div>
+              <p style={{ fontSize: 12, color: "var(--gray-700)", lineHeight: 1.7 }}>{val}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: "10px 16px", borderTop: "1px solid var(--gray-200)", background: "var(--gray-50)" }}>
+          <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--gray-400)" }}>Why it spreads: </span>
+          <span style={{ fontSize: 11, color: "var(--gray-600)", fontStyle: "italic" }}>{d.heroScript.viralMechanic}</span>
+        </div>
+      </Card>
+    )}
+
+    {/* Retargeting Ad */}
+    {d.retargetingAd && (
+      <>
+        <Divider />
+        <Label>Retargeting Ad (50%+ viewers)</Label>
+        <Card style={{ padding: "12px 16px" }}>
+          <Row k="Headline" v={d.retargetingAd.headline} />
+          <Row k="Body" v={d.retargetingAd.body} />
+          <Row k="CTA" v={d.retargetingAd.cta} />
+        </Card>
+      </>
+    )}
+  </div>
+),
   supplier: ({ d }) => {
     const b = d.manufacturingBrief || {};
     const bud = d.estimatedBudget || {};
