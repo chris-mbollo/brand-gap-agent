@@ -1065,7 +1065,19 @@ export default function App() {
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
       else { setSt("trends", "error"); addLog(`Trends API unavailable — simulating`); }
       await sleep(1000);
+      
+      addLog(`Fetching Reddit discussions…`);
+      const ytData = await fetchReddit(gap.winnerProduct, gap.winnerSubCommunity);
+      if (ytData?.postsFound) addLog(`${ytData.postsFound} Reddit posts found`);
+      else addLog(`Reddit unavailable — simulating`);
+      await sleep(500);
 
+      addLog(`Fetching YouTube transcripts…`);
+      const yt = await fetchYouTube(gap.youtubeSearchTerm);
+      if (yt?.videosWithTranscripts) addLog(`${yt.videosWithTranscripts} transcripts extracted`);
+      else addLog(`YouTube transcripts unavailable`);
+      await sleep(500);
+      
       const mine = await go("mine", P.mine(gap.winnerSubCommunity, gap.winnerProduct, ytData), `Analyzing ${ytData?.videosWithTranscripts || 0} transcripts…`);
       if (!mine) { setPhase("done"); return; }
 
