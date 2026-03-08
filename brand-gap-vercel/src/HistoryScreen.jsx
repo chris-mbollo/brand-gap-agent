@@ -33,7 +33,7 @@ function RunCard({ run, onSelect }) {
 
   return (
     <div
-      onClick={() => onSelect(run.id)}
+      onClick={() => { console.log('run:', run); onSelect(run.id); }}
       style={{
         padding: "18px 20px",
         border: "1px solid var(--gray-200)",
