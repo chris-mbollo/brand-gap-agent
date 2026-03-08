@@ -152,7 +152,10 @@ export default function HistoryScreen({ onViewRun }) {
         const res = await fetch('/api/history');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setRuns(data.runs || []);
+        const parsed = (data.runs || []).flat().map(item => {
+  try { return typeof item === 'string' ? JSON.parse(item) : item; } catch { return null; }
+}).filter(Boolean);
+setRuns(parsed);
       } catch (e) {
         setError(e.message);
       } finally {
