@@ -6,7 +6,7 @@ async function fetchTranscript(videoId) {
     if (!supadataKey) return null;
     const res = await fetch(`https://api.supadata.ai/v1/youtube/transcript?videoId=${videoId}&text=true`, {
       headers: { 'x-api-key': supadataKey },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(12000)
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -17,7 +17,7 @@ async function fetchTranscript(videoId) {
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
   const query      = searchParams.get('q');
-  const maxResults = Math.min(parseInt(searchParams.get('maxResults') || '50'), 50);
+  const maxResults = Math.min(parseInt(searchParams.get('maxResults') || '12'), 12);
 
   if (!query) return new Response(JSON.stringify({ error: 'q param required' }), {
     status: 400, headers: { 'Content-Type': 'application/json' }
@@ -41,19 +41,15 @@ export default async function handler(req) {
     });
 
     const videoIds = searchData.items.map(v => v.id?.videoId).filter(Boolean);
-    const transcriptIds = videoIds.slice(0, 3);
 
-    const detailsRes  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(',')}&key=${apiKey}`);
+    // Fetch details and transcripts in parallel
+    const [detailsRes, ...transcriptResults] = await Promise.all([
+      fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(',')}&key=${apiKey}`),
+      ...videoIds.map(id => fetchTranscript(id))
+    ]);
+
     const detailsData = await detailsRes.json();
-
-    // Fetch transcripts in batches of 10
-    const transcripts = new Array(videoIds.length).fill(null);
-    const batchSize = 10;
-    for (let i = 0; i < transcriptIds.length; i += batchSize) {
-      const batch   = transcriptIds.slice(i, i + batchSize);
-      const results = await Promise.all(batch.map(id => fetchTranscript(id)));
-      results.forEach((r, j) => { transcripts[i + j] = r; });
-    }
+    const transcripts = transcriptResults;
 
     const videos = (detailsData.items || []).map((v, i) => ({
       videoId:      v.id,
