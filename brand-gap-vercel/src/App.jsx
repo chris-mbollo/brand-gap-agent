@@ -1687,7 +1687,7 @@ export default function App() {
       
       setSt("trends", "running"); addLog(`Fetching Google Trends…`);
       addLog(`Trends params: ${gap.winnerProduct} | ${gap.winnerSubCommunity} | ${gap.howPeopleReferToIt}`);
-      const trendsData = await fetchTrends(gap.winnerProduct, gap.winnerSubCommunity, gap.howPeopleReferToIt);
+      const trendsData = await fetchTrends(market, gap.winnerSubCommunity, gap.winnerProduct);
       addLog(`Trends raw: ${JSON.stringify(trendsData)?.slice(0, 100)}`);
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
       else { setSt("trends", "error"); addLog(`Trends API unavailable — simulating`); }
