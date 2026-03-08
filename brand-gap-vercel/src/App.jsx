@@ -499,7 +499,7 @@ const Panels = {
         {d.postsAnalyzed > 0 && <Badge color="#16a34a">{d.postsAnalyzed} Reddit posts</Badge>}
       </div>
       <Card style={{ background: "var(--gray-50)", marginBottom: 16 }}>
-        <Label>Key quotes from transcripts</Label>
+        <Label>Key quotes from community</Label>
         {d.keyQuotes?.map((q, i) => (
           <div key={i} style={{ padding: "10px 0", borderBottom: i < d.keyQuotes.length - 1 ? "1px solid var(--gray-200)" : "none", display: "flex", gap: 10 }}>
             <span style={{ color: "var(--gray-300)", fontFamily: "var(--font-mono)", fontSize: 11, minWidth: 18, paddingTop: 1 }}>{String(i + 1).padStart(2, "0")}</span>
