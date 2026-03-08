@@ -817,7 +817,7 @@ const Panels = {
   );
 }
 };
-// ─── PPT GENERATOR ───────────────────────────────────────────────────────────
+// ─── PPT GENERATOR — DARK CINEMATIC ───────────────────────────────────────
 function loadPptxGen() {
   return new Promise((res, rej) => {
     if (window.PptxGenJS) { res(); return; }
@@ -832,277 +832,807 @@ async function generatePPT(results, market) {
   await loadPptxGen();
   const pres = new window.PptxGenJS();
   pres.layout = 'LAYOUT_WIDE';
-  const brand = results.brand?.winner || 'BRAND';
+
+  const brand  = results.brand?.winner || 'BRAND';
   const product = results.gap?.winnerProduct || 'Product';
-  const pal = results.brand?.colorPalette || {};
-  const C = {
-    ink: '111827', bg: 'FAFAFA', ac: 'D4531A', mid: '6B7280',
-    faint: 'F4F4F5', white: 'FFFFFF',
-    p1: (pal.primary || '#111827').replace('#', ''),
+  const pal    = results.brand?.colorPalette || {};
+
+  // ── Color system ─────────────────────────────────────────────────────────────
+  const raw = {
+    primary:   (pal.primary   || '#1a1a2e').replace('#',''),
+    secondary: (pal.secondary || '#16213e').replace('#',''),
+    accent:    (pal.accent    || '#e94560').replace('#',''),
+    bg:        (pal.bg        || '#F8F7F4').replace('#',''),
   };
+  const C = {
+    ink:   '0D0D0D',   // near-black base
+    coal:  '141414',   // card backgrounds
+    dark:  '1C1C1C',   // slightly lighter panels
+    steel: '2A2A2A',   // dividers / borders
+    mid:   '6B7280',   // secondary text
+    muted: '9CA3AF',   // labels
+    ghost: '3A3A3A',   // subtle fills
+    white: 'FFFFFF',
+    offwh: 'F0EFEC',   // warm off-white text
+    ac:    raw.accent, // brand accent
+    p1:    raw.primary,
+    p2:    raw.secondary,
+  };
+
   const W = 13.3, H = 7.5;
-  const mk = () => ({ type: 'outer', blur: 6, offset: 2, angle: 135, color: '000000', opacity: 0.06 });
 
-  const s1 = pres.addSlide(); s1.background = { color: C.ink };
-  s1.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.12, h: H, fill: { color: C.p1 }, line: { color: C.p1 } });
-  s1.addText(brand.toUpperCase(), { x: 0.45, y: 1.5, w: 11, h: 2.8, fontSize: 88, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
-  if (results.brand?.tagline) s1.addText(`"${results.brand.tagline}"`, { x: 0.45, y: 4.4, w: 10, h: 0.55, fontSize: 16, fontFace: 'Georgia', italic: true, color: '6B7280', margin: 0 });
-  s1.addText(`${product}  ·  ${market}`, { x: 0.45, y: 5.2, w: 10, h: 0.35, fontSize: 11, fontFace: 'Calibri', color: '374151', charSpacing: 2, margin: 0 });
+  // ── Design helpers ────────────────────────────────────────────────────────────
+  const glow  = () => ({ type:'outer', blur:18, offset:3, angle:135, color:C.ac,  opacity:0.18 });
+  const elev  = () => ({ type:'outer', blur:10, offset:3, angle:135, color:'000000', opacity:0.35 });
+  const soft  = () => ({ type:'outer', blur:5,  offset:2, angle:135, color:'000000', opacity:0.20 });
 
-  if (results.gap) {
-    const s2 = pres.addSlide(); s2.background = { color: C.bg };
-    s2.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-    s2.addText('THE BRAND GAP', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-    s2.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 1.1, w: 0.06, h: 0.9, fill: { color: C.p1 }, line: { color: C.p1 } });
-    s2.addText(results.gap.whyThisGap || '', { x: 0.7, y: 1.1, w: 9, h: 0.9, fontSize: 13, fontFace: 'Georgia', italic: true, color: '4B5563', valign: 'middle', wrap: true, margin: 0 });
-    [['GAP SCORE', `${results.gap.gapScore}/10`], ['CAGR', results.gap.cagr], ['SATURATION', results.gap.brandSaturation], ['MARKET', results.gap.parentMarketSize]].forEach(([k, v], i) => {
-      s2.addShape(pres.shapes.RECTANGLE, { x: 0.5 + (i * 3.1), y: 2.25, w: 2.9, h: 0.82, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
-      s2.addText(String(v || '—'), { x: 0.5 + (i * 3.1), y: 2.28, w: 2.9, h: 0.5, fontSize: 22, fontFace: 'Georgia', bold: true, color: C.ink, align: 'center', valign: 'middle', margin: 0 });
-      s2.addText(k, { x: 0.5 + (i * 3.1), y: 2.8, w: 2.9, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', align: 'center', charSpacing: 2, margin: 0 });
-    });
-    s2.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 3.28, w: 12.3, h: 0.58, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-    s2.addText(`"${results.gap.howPeopleReferToIt}" — not a brand name`, { x: 0.7, y: 3.28, w: 11.5, h: 0.58, fontSize: 12, fontFace: 'Georgia', italic: true, color: '374151', valign: 'middle', margin: 0 });
-    s2.addText('SUB-COMMUNITIES EVALUATED', { x: 0.5, y: 4.08, w: 8, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 3, margin: 0 });
-    (results.gap.subCommunities || []).slice(0, 5).forEach((sc, i) => {
-      const isW = sc.name === results.gap.winnerSubCommunity;
-      s2.addShape(pres.shapes.RECTANGLE, { x: 0.5 + (i * 2.52), y: 4.38, w: 2.38, h: 0.82, fill: { color: isW ? C.ink : C.faint }, line: { color: isW ? C.ink : 'E4E4E7' } });
-      s2.addText(sc.name, { x: 0.6 + (i * 2.52), y: 4.38, w: 2.2, h: 0.82, fontSize: 11, fontFace: 'Calibri', bold: isW, color: isW ? C.white : '374151', align: 'center', valign: 'middle', wrap: true, margin: 4 });
+  // Slide header — full-width dark bar with accent left stripe
+  const hdr = (sl, title, sub='') => {
+    sl.addShape(pres.shapes.RECTANGLE, { x:0, y:0, w:W, h:1.05, fill:{color:C.ink}, line:{color:C.ink} });
+    sl.addShape(pres.shapes.RECTANGLE, { x:0, y:0, w:0.22, h:1.05, fill:{color:C.ac}, line:{color:C.ac} });
+    sl.addText(title, { x:0.42, y:0, w:8.5, h:1.05, fontSize:26, fontFace:'Georgia', bold:true, color:C.white, valign:'middle', margin:0 });
+    if (sub) sl.addText(sub.toUpperCase(), { x:W-4.8, y:0, w:4.6, h:1.05, fontSize:8, fontFace:'Calibri', color:C.muted, valign:'middle', align:'right', charSpacing:2, margin:0 });
+  };
+
+  // Stat card — dark glass style
+  const card = (sl, x, y, w, h, val, lbl, opts={}) => {
+    const bg = opts.ac ? C.ac : opts.p1 ? C.p1 : C.dark;
+    const vc = opts.ac || opts.p1 ? C.white : C.offwh;
+    const lc = opts.ac || opts.p1 ? 'rgba(255,255,255,0.65)' : C.muted;
+    sl.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill:{color:bg}, line:{color:C.steel}, shadow:soft() });
+    sl.addText(String(val||'—'), { x:x+0.12, y, w:w-0.24, h:h*0.62, fontSize:opts.fs||22, fontFace:'Georgia', bold:true, color:vc, align:'center', valign:'middle', margin:0 });
+    sl.addText(lbl, { x:x+0.08, y:y+h*0.60, w:w-0.16, h:h*0.38, fontSize:6.5, fontFace:'Calibri', color:lc, align:'center', charSpacing:2, margin:0 });
+  };
+
+  // Accent rule line
+  const rule = (sl, x, y, w) => sl.addShape(pres.shapes.RECTANGLE, { x, y, w, h:0.025, fill:{color:C.ac}, line:{color:C.ac} });
+
+  // Subtle divider
+  const div = (sl, x, y, w) => sl.addShape(pres.shapes.RECTANGLE, { x, y, w, h:0.012, fill:{color:C.steel}, line:{color:C.steel} });
+
+  // Label (small caps)
+  const lbl = (sl, x, y, w, text, color=C.muted) =>
+    sl.addText(text.toUpperCase(), { x, y, w, h:0.28, fontSize:6.5, fontFace:'Calibri', color, charSpacing:2.5, margin:0 });
+
+  // Body text
+  const body = (sl, x, y, w, h, text, fs=10, color=C.offwh) =>
+    sl.addText(String(text||''), { x, y, w, h, fontSize:fs, fontFace:'Calibri', color, wrap:true, valign:'top', margin:0 });
+
+  // Quote block with left accent bar
+  const quote = (sl, x, y, w, h, text, fs=11) => {
+    sl.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill:{color:C.coal}, line:{color:C.steel} });
+    sl.addShape(pres.shapes.RECTANGLE, { x, y, w:0.07, h, fill:{color:C.ac}, line:{color:C.ac} });
+    sl.addText(`"${text}"`, { x:x+0.18, y, w:w-0.28, h, fontSize:fs, fontFace:'Georgia', italic:true, color:C.offwh, wrap:true, valign:'middle', margin:6 });
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 1 — COVER
+  // ════════════════════════════════════════════════════════════════════════════
+  const s1 = pres.addSlide();
+  s1.background = { color: C.ink };
+
+  // Full-height accent stripe
+  s1.addShape(pres.shapes.RECTANGLE, { x:0, y:0, w:0.28, h:H, fill:{color:C.ac}, line:{color:C.ac} });
+
+  // Right stat panel
+  s1.addShape(pres.shapes.RECTANGLE, { x:W-4.0, y:0, w:4.0, h:H, fill:{color:C.coal}, line:{color:C.steel} });
+  rule(s1, W-4.0, 0, 4.0);
+
+  // Brand name — massive Georgia
+  s1.addText(brand.toUpperCase(), {
+    x:0.6, y:0.9, w:W-5.0, h:3.0,
+    fontSize:82, fontFace:'Georgia', bold:true, color:C.white, margin:0
+  });
+
+  if (results.brand?.tagline) {
+    s1.addText(`"${results.brand.tagline}"`, {
+      x:0.6, y:4.1, w:W-5.0, h:0.7,
+      fontSize:16, fontFace:'Georgia', italic:true, color:C.muted, margin:0
     });
   }
+  rule(s1, 0.6, 4.95, W-5.2);
+  s1.addText(product.toUpperCase(), { x:0.6, y:5.1, w:W-5.2, h:0.35, fontSize:10, fontFace:'Calibri', color:C.ac, charSpacing:3, margin:0 });
+  s1.addText(market.toUpperCase(), { x:0.6, y:5.5, w:W-5.2, h:0.3, fontSize:9, fontFace:'Calibri', color:C.muted, charSpacing:3, margin:0 });
 
-if (results.trends) {
-  const s2b = pres.addSlide(); s2b.background = { color: C.bg };
-  s2b.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-  s2b.addText('MARKET TIMING', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
+  // Right panel stats
+  s1.addText('BRAND REPORT', { x:W-3.8, y:0.38, w:3.6, h:0.3, fontSize:8, fontFace:'Calibri', color:C.muted, charSpacing:3, align:'center', margin:0 });
+  div(s1, W-3.8, 0.82, 3.6);
 
-  // Score cards
-  const trendStats = [
-    ['COMPOSITE SCORE', `${results.trends.compositeScore || results.trends.trend?.score}/10`],
-    ['DIRECTION', results.trends.trend?.direction || '—'],
-    ['BRAND RISK', results.trends.brandSaturationRisk || '—'],
-    ['VERDICT', results.trends.interpretation?.verdict || '—']
+  const cStats = [
+    ['Gap Score', `${results.gap?.gapScore||'—'}/10`],
+    ['Market Size', results.gap?.parentMarketSize||'—'],
+    ['Saturation', results.gap?.brandSaturation||'—'],
+    ['CAGR', results.gap?.cagr||'—'],
+    ['Retail Price', results.validate?.suggestedRetailPrice||results.gap?.suggestedRetailPrice||'—'],
+    ['Gross Margin', results.validate?.grossMarginPotential||results.gap?.grossMarginPotential||'—'],
   ];
-  trendStats.forEach(([k, v], i) => {
-    s2b.addShape(pres.shapes.RECTANGLE, { x: 0.5 + (i * 3.1), y: 1.08, w: 2.9, h: 0.82, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
-    s2b.addText(String(v || '—'), { x: 0.5 + (i * 3.1), y: 1.1, w: 2.9, h: 0.5, fontSize: 16, fontFace: 'Georgia', bold: true, color: C.ink, align: 'center', valign: 'middle', margin: 0 });
-    s2b.addText(k, { x: 0.5 + (i * 3.1), y: 1.62, w: 2.9, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', align: 'center', charSpacing: 2, margin: 0 });
+  cStats.forEach(([k,v], i) => {
+    const y = 1.0 + (i*1.05);
+    s1.addText(String(v), { x:W-3.8, y, w:3.6, h:0.62, fontSize:22, fontFace:'Georgia', bold:true, color:i===0?C.ac:C.white, align:'center', valign:'middle', margin:0 });
+    s1.addText(k.toUpperCase(), { x:W-3.8, y:y+0.58, w:3.6, h:0.22, fontSize:6.5, fontFace:'Calibri', color:C.muted, align:'center', charSpacing:2, margin:0 });
+    if (i<5) div(s1, W-3.4, y+0.85, 2.8);
   });
 
-  // Trend chart — draw as a bar chart using rectangles
-  const timeline = (results.trends.timelineData || []).filter(d => d.value > 0).slice(-24);
-  if (timeline.length > 0) {
-    const chartX = 0.5, chartY = 2.1, chartW = 12.3, chartH = 2.8;
-    const maxVal = Math.max(...timeline.map(d => d.value));
-    const barW = (chartW / timeline.length) * 0.7;
-    const gap = (chartW / timeline.length) * 0.3;
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 2 — THE BRAND GAP
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.gap) {
+    const s2 = pres.addSlide();
+    s2.background = { color:C.ink };
+    hdr(s2, 'The Brand Gap', results.gap.winnerSubCommunity);
 
-    // Chart background
-    s2b.addShape(pres.shapes.RECTANGLE, { x: chartX, y: chartY, w: chartW, h: chartH, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
+    // Hero gap statement
+    quote(s2, 0.5, 1.22, 12.3, 1.0, results.gap.whyThisGap||'', 12);
 
-    // Bars
-    timeline.forEach((d, i) => {
-      const barH = (d.value / maxVal) * (chartH - 0.3);
-      const x = chartX + (i * (barW + gap));
-      const y = chartY + chartH - barH - 0.1;
-      const isRecent = i >= timeline.length - 4;
-      s2b.addShape(pres.shapes.RECTANGLE, {
-        x, y, w: barW, h: barH,
-        fill: { color: isRecent ? C.p1 : 'D1D5DB' },
-        line: { color: isRecent ? C.p1 : 'D1D5DB' }
-      });
+    // 4 stat cards
+    const gStats = [
+      ['GAP SCORE', `${results.gap.gapScore}/10`, {ac:true, fs:28}],
+      ['CAGR',      results.gap.cagr,              {fs:22}],
+      ['SATURATION',results.gap.brandSaturation,   {fs:18}],
+      ['MARKET SIZE',results.gap.parentMarketSize, {fs:16}],
+    ];
+    gStats.forEach(([k,v,o], i) => card(s2, 0.5+(i*3.1), 2.42, 2.9, 1.0, v, k, o));
+
+    // People say / dominant brands
+    s2.addShape(pres.shapes.RECTANGLE, { x:0.5, y:3.6, w:12.3, h:0.68, fill:{color:C.dark}, line:{color:C.steel} });
+    s2.addText('PEOPLE SAY', { x:0.7, y:3.6, w:2.2, h:0.68, fontSize:7, fontFace:'Calibri', color:C.muted, charSpacing:2, valign:'middle', margin:0 });
+    s2.addText(`"${results.gap.howPeopleReferToIt}"  —  not a brand name`, { x:2.9, y:3.6, w:6.0, h:0.68, fontSize:14, fontFace:'Georgia', italic:true, color:C.ac, valign:'middle', margin:0 });
+    s2.addText('DOMINANT BRANDS', { x:8.9, y:3.6, w:2.0, h:0.28, fontSize:7, fontFace:'Calibri', color:C.muted, charSpacing:2, valign:'middle', margin:0 });
+    s2.addText(results.validate?.dominantBrands?.join(', ') || results.gap.dominantBrands?.join(', ') || 'none yet', { x:8.9, y:3.9, w:3.7, h:0.35, fontSize:11, fontFace:'Calibri', color:C.offwh, valign:'middle', margin:0 });
+
+    // Sub-communities
+    lbl(s2, 0.5, 4.45, 8, 'Sub-Communities Evaluated');
+    (results.gap.subCommunities||[]).slice(0,5).forEach((sc, i) => {
+      const isW = sc.name === results.gap.winnerSubCommunity;
+      const x = 0.5+(i*2.52);
+      s2.addShape(pres.shapes.RECTANGLE, { x, y:4.78, w:2.38, h:1.35, fill:{color:isW?C.ac:C.dark}, line:{color:isW?C.ac:C.steel}, shadow:isW?glow():soft() });
+      if (isW) { s2.addText('★  WINNER', { x, y:4.82, w:2.38, h:0.25, fontSize:6.5, fontFace:'Calibri', bold:true, color:'FFFFFF', align:'center', charSpacing:2, margin:0 }); }
+      s2.addText(sc.name, { x:x+0.1, y:isW?5.1:4.78, w:2.2, h:isW?0.72:1.35, fontSize:10, fontFace:'Calibri', bold:isW, color:C.white, align:'center', valign:'middle', wrap:true, margin:4 });
+      if (sc.winnerProduct) s2.addText(sc.winnerProduct, { x:x+0.1, y:5.88, w:2.2, h:0.2, fontSize:7, fontFace:'Calibri', italic:true, color:isW?'FFFFFFBB':C.muted, align:'center', margin:0 });
     });
-
-    s2b.addText('12-month search interest (darker = most recent)', { x: chartX, y: chartY + chartH + 0.05, w: chartW, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', align: 'center', margin: 0 });
   }
 
-  // Plain English explanation
-  const momentum = results.trends.trend?.momentum || 0;
-  const explanation =
-    momentum > 20  ? "Search interest is growing fast — people are actively discovering this right now. Move quickly before brands move in." :
-    momentum > 0   ? "Search interest is slowly climbing. The market is warming up — good early signal for a first-mover brand." :
-    momentum === 0 ? "Search interest is stable with steady demand. No urgency but the gap is real and unowned." :
-                     "Search interest has cooled. Validate demand carefully before committing inventory budget.";
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 3 — YOUTUBE DATA
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.youtube) {
+    const s3 = pres.addSlide();
+    s3.background = { color:C.ink };
+    hdr(s3, 'YouTube Data', `${results.youtube.videosFound||0} videos · ${results.youtube.videosWithTranscripts||0} transcripts`);
 
-  s2b.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 5.2, w: 12.3, h: 0.9, fill: { color: '1F2937' }, line: { color: '374151' } });
-  s2b.addText(explanation, { x: 0.7, y: 5.2, w: 7.5, h: 0.9, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
+    // Stat badges
+    card(s3, 0.5, 1.22, 2.8, 0.85, `${results.youtube.videosFound||0}`, 'Videos Found', {fs:26});
+    card(s3, 3.5, 1.22, 2.8, 0.85, `${results.youtube.videosWithTranscripts||0}`, 'Transcripts Extracted', {ac:true, fs:26});
 
-// Composite score explanation box
-const compositeScore = results.trends.compositeScore || results.trends.trend?.score || 0;
-const compositeExplain = `Composite Score ${compositeScore}/10: Triangulated from 3 signals — product search (50%), sub-community search (30%), and organic language (20%). A score of 8–10 means all signals agree timing is right. Below 5 means demand exists but isn't growing yet.`;
-s2b.addShape(pres.shapes.RECTANGLE, { x: 8.4, y: 5.2, w: 4.4, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-s2b.addText(compositeExplain, { x: 8.5, y: 5.2, w: 4.2, h: 0.9, fontSize: 8, fontFace: 'Calibri', color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
-}
-  
-  if (results.brand) {
-    const s3 = pres.addSlide(); s3.background = { color: C.ink };
-    s3.addText(brand.toUpperCase(), { x: 0.5, y: 0.4, w: 8.5, h: 3, fontSize: 88, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
-    s3.addText(`"${results.brand.tagline || ''}"`, { x: 0.5, y: 3.5, w: 8.5, h: 0.55, fontSize: 16, fontFace: 'Georgia', italic: true, color: '6B7280', margin: 0 });
-    s3.addText(results.brand.brandPromise || '', { x: 0.5, y: 4.18, w: 7.5, h: 0.65, fontSize: 12, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
-    Object.entries(pal).forEach(([k, v], i) => {
-      const hex = (v || '').replace('#', '');
-      s3.addShape(pres.shapes.OVAL, { x: 0.5 + (i * 0.75), y: 5.1, w: 0.55, h: 0.55, fill: { color: hex }, line: { color: '333333', pt: 1 } });
+    // Video list
+    lbl(s3, 0.5, 2.25, 12.3, 'Videos Analyzed');
+    (results.youtube.videos||[]).slice(0,7).forEach((v, i) => {
+      const y = 2.58+(i*0.68);
+      const hasTx = v.transcript;
+      s3.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:12.3, h:0.6, fill:{color:i%2===0?C.coal:C.dark}, line:{color:C.steel} });
+      s3.addText(v.title||'', { x:0.7, y, w:8.8, h:0.6, fontSize:10, fontFace:'Calibri', color:C.offwh, valign:'middle', wrap:false, margin:0 });
+      s3.addText(v.channelTitle||'', { x:9.6, y, w:2.0, h:0.3, fontSize:8, fontFace:'Calibri', color:C.muted, valign:'middle', margin:0 });
+      s3.addText(v.viewCount ? `${Number(v.viewCount).toLocaleString()} views` : '', { x:9.6, y:y+0.3, w:2.0, h:0.28, fontSize:7, fontFace:'Calibri', color:C.muted, margin:0 });
+      s3.addShape(pres.shapes.RECTANGLE, { x:11.72, y:y+0.12, w:0.95, h:0.36, fill:{color:hasTx?'16a34a':C.ghost}, line:{color:'transparent'} });
+      s3.addText(hasTx?'✓ transcript':'no captions', { x:11.72, y:y+0.12, w:0.95, h:0.36, fontSize:7, fontFace:'Calibri', color:C.white, align:'center', valign:'middle', margin:0 });
     });
-    s3.addShape(pres.shapes.RECTANGLE, { x: 9.0, y: 0.4, w: 3.8, h: 6.4, fill: { color: '1F2937' }, line: { color: '374151' } });
-    s3.addText('HERO COPY', { x: 9.2, y: 0.65, w: 3.4, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
-    s3.addText(results.brand.websiteHeroHeadline || '', { x: 9.2, y: 1.0, w: 3.4, h: 1.0, fontSize: 18, fontFace: 'Georgia', bold: true, color: C.white, wrap: true, margin: 0 });
-    s3.addText(results.brand.websiteHeroSubline || '', { x: 9.2, y: 2.1, w: 3.4, h: 0.65, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
-    s3.addShape(pres.shapes.RECTANGLE, { x: 9.2, y: 2.9, w: 2.0, h: 0.42, fill: { color: C.p1 }, line: { color: C.p1 } });
-    s3.addText(results.brand.ctaText || 'SHOP NOW', { x: 9.2, y: 2.9, w: 2.0, h: 0.42, fontSize: 10, fontFace: 'Calibri', bold: true, color: C.white, align: 'center', valign: 'middle', margin: 0 });
-    s3.addText('BRAND VOICE', { x: 9.2, y: 3.6, w: 3.4, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
-    s3.addText(results.brand.brandVoice || '', { x: 9.2, y: 3.88, w: 3.4, h: 0.5, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
+
+    // Corpus preview
+    if (results.youtube.corpus) {
+      lbl(s3, 0.5, 7.08, 12.3, 'Transcript Corpus Preview');
+      s3.addShape(pres.shapes.RECTANGLE, { x:0.5, y:7.32, w:12.3, h:0.6, fill:{color:C.coal}, line:{color:C.steel} });
+      s3.addText((results.youtube.corpus||'').slice(0,280)+'…', { x:0.7, y:7.32, w:12.0, h:0.6, fontSize:8, fontFace:'Calibri', color:C.muted, wrap:false, valign:'middle', margin:0 });
+    }
   }
-  
+// ════════════════════════════════════════════════════════════════════════════
+// SLIDE 4 — REDDIT DATA
+// ════════════════════════════════════════════════════════════════════════════
 if (results.reddit) {
-  const sRe = pres.addSlide(); sRe.background = { color: C.bg };
-  sRe.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-  sRe.addText('COMMUNITY SIGNAL', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-  sRe.addText(`${results.reddit.postsFound || 0} Reddit discussions analyzed across r/${(results.reddit.subreddits || []).slice(0,3).join(', r/')}`, { x: 0.5, y: 1.0, w: 12.3, h: 0.4, fontSize: 11, fontFace: 'Calibri', color: '6B7280', margin: 0 });
-  (results.reddit.posts || []).slice(0, 6).forEach((p, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const bx = 0.5 + (col * 6.4);
-    const by = 1.55 + (row * 1.75);
-    sRe.addShape(pres.shapes.RECTANGLE, { x: bx, y: by, w: 6.1, h: 1.6, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
-    sRe.addText(`r/${p.subreddit}`, { x: bx + 0.15, y: by + 0.1, w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: C.p1, charSpacing: 2, margin: 0 });
-    sRe.addText(p.title || '', { x: bx + 0.15, y: by + 0.32, w: 5.8, h: 0.45, fontSize: 11, fontFace: 'Calibri', bold: true, color: C.ink, wrap: true, margin: 0 });
-    sRe.addText(p.snippet || '', { x: bx + 0.15, y: by + 0.82, w: 5.8, h: 0.65, fontSize: 9, fontFace: 'Calibri', color: '6B7280', wrap: true, margin: 0 });
-  });
-  const signals = results.reddit.signals || {};
-  if ((signals.buyingSignals || []).length > 0) {
-    sRe.addText('BUYING SIGNALS DETECTED', { x: 0.5, y: 6.85, w: 12.3, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
-    sRe.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 7.08, w: 12.3, h: 0.28, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-    sRe.addText(signals.buyingSignals.slice(0, 2).join('  ·  '), { x: 0.7, y: 7.08, w: 11.8, h: 0.28, fontSize: 9, fontFace: 'Calibri', color: '374151', valign: 'middle', margin: 0 });
+  const sRd = pres.addSlide();
+  sRd.background = { color:C.ink };
+  hdr(sRd, 'Reddit Data', `${results.reddit.postsFound||0} posts · ${(results.reddit.subreddits||[]).slice(0,3).map(s=>'r/'+s).join(' · ')}`);
+
+  // Stat badges
+  card(sRd, 0.5, 1.22, 2.8, 0.85, `${results.reddit.postsFound||0}`, 'Posts Found', {ac:true, fs:26});
+  card(sRd, 3.5, 1.22, 2.8, 0.85, (results.reddit.subreddits||[]).length, 'Subreddits', {fs:22});
+
+  // Post list
+  lbl(sRd, 0.5, 2.25, 12.3, 'Reddit Discussions Analyzed');
+  (results.reddit.posts||[]).slice(0,7).forEach((p, i) => {
+  const y = 2.58+(i*0.72);
+  sRd.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:12.3, h:0.65, fill:{color:i%2===0?C.coal:C.dark}, line:{color:C.steel} });
+  sRd.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:0.06, h:0.65, fill:{color:C.ac}, line:{color:C.ac} });
+  sRd.addText(`r/${p.subreddit}`, { x:0.65, y:y+0.04, w:1.6, h:0.22, fontSize:7, fontFace:'Calibri', color:C.ac, margin:0 });
+  sRd.addText(p.title||'', { x:0.65, y:y+0.26, w:11.5, h:0.22, fontSize:10, fontFace:'Calibri', bold:true, color:C.offwh, wrap:false, margin:0 });
+  sRd.addText(p.snippet||'', { x:0.65, y:y+0.46, w:11.5, h:0.18, fontSize:8, fontFace:'Calibri', color:C.muted, wrap:false, margin:0 });
+});
+
+  // Buying signals
+  if ((results.reddit.signals?.buyingSignals||[]).length>0) {
+    lbl(sRd, 0.5, 7.12, 12.3, 'Buying Signals Detected', C.ac);
+    results.reddit.signals.buyingSignals.slice(0,2).forEach((s, i) => {
+      sRd.addShape(pres.shapes.RECTANGLE, { x:0.5+(i*6.2), y:7.38, w:5.9, h:0.42, fill:{color:C.dark}, line:{color:C.ac+'55'} });
+      sRd.addText(`✓  ${s}`, { x:0.7+(i*6.2), y:7.38, w:5.7, h:0.42, fontSize:9, fontFace:'Calibri', color:C.offwh, valign:'middle', margin:0 });
+    });
   }
 }
   
-if (results.avatar) {
-  const sAv = pres.addSlide(); sAv.background = { color: C.bg };
-  sAv.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-  sAv.addText('THE TRIBE', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-  sAv.addText(results.avatar.personaName || '', { x: 0.5, y: 1.08, w: 8, h: 0.6, fontSize: 28, fontFace: 'Georgia', bold: true, color: C.ink, margin: 0 });
-  sAv.addText(results.avatar.coreIdentity || '', { x: 0.5, y: 1.72, w: 8, h: 0.4, fontSize: 13, fontFace: 'Calibri', color: '6B7280', margin: 0 });
-  sAv.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 2.3, w: 5.8, h: 0.58, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-  sAv.addText(`"${results.avatar.aspirationalSelf || ''}"`, { x: 0.7, y: 2.3, w: 5.4, h: 0.58, fontSize: 11, fontFace: 'Georgia', italic: true, color: '374151', valign: 'middle', wrap: true, margin: 0 });
-  [['Pain Point', results.avatar.painPoint], ['What They Want to Feel', results.avatar.whatTheyWantToFeel], ['What Repels Them', results.avatar.whatRepelsThem]].forEach(([k, v], i) => {
-    sAv.addText(k.toUpperCase(), { x: 0.5, y: 3.1 + (i * 0.9), w: 3, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
-    sAv.addText(String(v || ''), { x: 0.5, y: 3.32 + (i * 0.9), w: 5.8, h: 0.5, fontSize: 11, fontFace: 'Calibri', color: '374151', wrap: true, margin: 0 });
-  });
-  const keywords = results.avatar.identityKeywords || [];
-  keywords.slice(0, 6).forEach((kw, i) => {
-    sAv.addShape(pres.shapes.RECTANGLE, { x: 7.0 + ((i % 3) * 2.1), y: 1.08 + (Math.floor(i / 3) * 0.65), w: 1.9, h: 0.5, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-    sAv.addText(kw, { x: 7.0 + ((i % 3) * 2.1), y: 1.08 + (Math.floor(i / 3) * 0.65), w: 1.9, h: 0.5, fontSize: 10, fontFace: 'Calibri', color: C.ink, align: 'center', valign: 'middle', margin: 0 });
-  });
-  sAv.addText('TRIBAL ESSENCE', { x: 7.0, y: 2.5, w: 6.0, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
-  sAv.addShape(pres.shapes.RECTANGLE, { x: 7.0, y: 2.8, w: 6.0, h: 3.8, fill: { color: C.ink }, line: { color: C.ink } });
-  sAv.addText(results.avatar.tribalEssence || '', { x: 7.2, y: 2.95, w: 5.6, h: 3.5, fontSize: 12, fontFace: 'Georgia', italic: true, color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
-}
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 5 — GOOGLE TRENDS
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.trends) {
+    const s4 = pres.addSlide();
+    s4.background = { color:C.ink };
+    hdr(s4, 'Market Timing', 'Google Trends · Triangulated Signal');
 
-if (results.brands) {
-  const sBr = pres.addSlide(); sBr.background = { color: C.bg };
-  sBr.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-  sBr.addText('INSPIRATION BRANDS', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-  (results.brands.inspirationBrands || []).slice(0, 3).forEach((b, i) => {
-    const bx = 0.5 + (i * 4.3);
-    sBr.addShape(pres.shapes.RECTANGLE, { x: bx, y: 1.08, w: 4.0, h: 5.5, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
-    sBr.addText(b.brand || '', { x: bx + 0.15, y: 1.2, w: 3.7, h: 0.6, fontSize: 20, fontFace: 'Georgia', bold: true, color: C.ink, margin: 0 });
-    sBr.addText((b.category || '').toUpperCase(), { x: bx + 0.15, y: 1.82, w: 3.7, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
-    sBr.addText(b.whySameAvatar || '', { x: bx + 0.15, y: 2.15, w: 3.7, h: 1.2, fontSize: 10, fontFace: 'Calibri', color: '374151', wrap: true, margin: 0 });
-    (b.colorPalette || []).slice(0, 3).forEach((hex, ci) => {
-      sBr.addShape(pres.shapes.OVAL, { x: bx + 0.15 + (ci * 0.65), y: 3.5, w: 0.5, h: 0.5, fill: { color: hex.replace('#', '') }, line: { color: 'E4E4E7' } });
+    // 4 stat cards
+    const tStats = [
+      ['COMPOSITE SCORE', `${results.trends.compositeScore||results.trends.trend?.score||'—'}/10`, {ac:true, fs:26}],
+      ['DIRECTION',       results.trends.trend?.direction||'—',             {fs:18}],
+      ['BRAND RISK',      results.trends.brandSaturationRisk||'—',          {fs:18}],
+      ['VERDICT',         results.trends.interpretation?.verdict||'—',      {fs:12}],
+    ];
+    tStats.forEach(([k,v,o], i) => card(s4, 0.5+(i*3.1), 1.22, 2.9, 0.92, v, k, o));
+
+    // Triangulation badges
+    const tri = results.trends.triangulation||[];
+    if (tri.length) {
+      lbl(s4, 0.5, 2.32, 12.3, 'Signal Triangulation');
+      tri.slice(0,3).forEach((t, i) => {
+        const x = 0.5+(i*4.1);
+        s4.addShape(pres.shapes.RECTANGLE, { x, y:2.62, w:3.9, h:0.72, fill:{color:C.dark}, line:{color:C.steel} });
+        s4.addText(t.term||'', { x:x+0.15, y:2.62, w:2.4, h:0.72, fontSize:10, fontFace:'Calibri', color:C.offwh, valign:'middle', margin:0 });
+        const scoreColor = (t.score>=7)?'16a34a':(t.score>=4)?C.ac:'6B7280';
+        s4.addShape(pres.shapes.RECTANGLE, { x:x+2.7, y:2.78, w:1.05, h:0.42, fill:{color:scoreColor}, line:{color:'transparent'} });
+        s4.addText(`${t.score||0}/10`, { x:x+2.7, y:2.78, w:1.05, h:0.42, fontSize:11, fontFace:'Georgia', bold:true, color:C.white, align:'center', valign:'middle', margin:0 });
+      });
+    }
+
+    // Bar chart
+    const timeline = (results.trends.timelineData||[]).filter(d=>d.value>0).slice(-24);
+    if (timeline.length>0) {
+      const cx=0.5, cy=3.52, cw=8.2, ch=2.5;
+      const maxV = Math.max(...timeline.map(d=>d.value));
+      const bw = (cw/timeline.length)*0.72;
+      const bg = (cw/timeline.length)*0.28;
+
+      s4.addShape(pres.shapes.RECTANGLE, { x:cx, y:cy, w:cw, h:ch, fill:{color:C.coal}, line:{color:C.steel} });
+      [0.25,0.5,0.75,1.0].forEach(p => {
+        const gy = cy+ch-(p*ch);
+        s4.addShape(pres.shapes.RECTANGLE, { x:cx, y:gy, w:cw, h:0.012, fill:{color:C.ghost}, line:{color:C.ghost} });
+        s4.addText(`${Math.round(p*maxV)}`, { x:cx-0.42, y:gy-0.14, w:0.38, h:0.28, fontSize:7, fontFace:'Calibri', color:C.muted, align:'right', margin:0 });
+      });
+
+      timeline.forEach((d, i) => {
+        const bh = Math.max(0.05, (d.value/maxV)*(ch-0.12));
+        const bx = cx+(i*(bw+bg));
+        const by = cy+ch-bh-0.06;
+        const isPk = d.value===maxV;
+        const isRc = i>=timeline.length-4;
+        s4.addShape(pres.shapes.RECTANGLE, {
+          x:bx, y:by, w:bw, h:bh,
+          fill:{color: isPk?C.ac : isRc?C.p1 : '2E3A45'},
+          line:{color: isPk?C.ac : isRc?C.p1 : '2E3A45'},
+          shadow: isPk?glow():undefined
+        });
+      });
+      s4.addText('24-month search interest  ·  accent = peak  ·  brand color = last 4 months', {
+        x:cx, y:cy+ch+0.08, w:cw, h:0.22, fontSize:7, fontFace:'Calibri', color:C.muted, align:'center', margin:0
+      });
+    }
+
+    // Right analysis panel
+    s4.addShape(pres.shapes.RECTANGLE, { x:8.95, y:3.52, w:4.05, h:3.6, fill:{color:C.coal}, line:{color:C.steel} });
+    lbl(s4, 9.12, 3.65, 3.7, 'Analysis');
+
+    const mom = results.trends.trend?.momentum||0;
+    const momTxt = mom>20 ? 'Accelerating fast — move now before brands enter.' :
+      mom>0  ? 'Slowly climbing — early mover window is open.' :
+      mom===0? 'Stable demand — gap is real, unowned, low urgency.' :
+               'Cooling — validate before committing inventory.';
+
+    s4.addText(`${mom}% vs 3 months ago`, { x:9.12, y:3.98, w:3.7, h:0.38, fontSize:14, fontFace:'Georgia', bold:true, color:C.ac, margin:0 });
+    s4.addText('MOMENTUM', { x:9.12, y:4.38, w:3.7, h:0.22, fontSize:6.5, fontFace:'Calibri', color:C.muted, charSpacing:2, margin:0 });
+    body(s4, 9.12, 4.62, 3.7, 0.65, momTxt, 9, C.offwh);
+
+    div(s4, 9.12, 5.32, 3.7);
+
+    const pkVal = results.trends.trend?.peakValue||0;
+    const curVal = results.trends.trend?.currentValue||0;
+    s4.addText(`${pkVal} / Current: ${curVal}`, { x:9.12, y:5.48, w:3.7, h:0.38, fontSize:13, fontFace:'Georgia', bold:true, color:C.offwh, margin:0 });
+    lbl(s4, 9.12, 5.88, 3.7, 'Peak / Current Value');
+
+    // Launch window
+    const lw = results.trends.launchWindowOpen;
+    const lwColor = lw===true?'16a34a': lw===false?'dc2626':C.ac;
+    const lwTxt = lw===true?'✓ Launch window open' : lw===false?'⚠ Window uncertain' : '⚡ Monitor closely';
+    s4.addShape(pres.shapes.RECTANGLE, { x:0.5, y:6.2, w:8.2, h:0.62, fill:{color:lwColor+'22'}, line:{color:lwColor} });
+    s4.addText(lwTxt, { x:0.7, y:6.2, w:4.0, h:0.62, fontSize:12, fontFace:'Georgia', bold:true, color:lwColor.length===6?'#'+lwColor:C.ac, valign:'middle', margin:0 });
+    const rising = (results.trends.risingQueries||[]).slice(0,3);
+    if (rising.length) {
+      s4.addText('Rising: '+rising.map(q=>q.query).join('  ·  '), { x:4.8, y:6.2, w:4.2, h:0.62, fontSize:9, fontFace:'Calibri', italic:true, color:C.muted, valign:'middle', margin:0 });
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 6 — SIGNAL ANALYSIS
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.mine) {
+    const s5 = pres.addSlide();
+    s5.background = { color:C.ink };
+    hdr(s5, 'Signal Analysis', `${results.mine.dataSource||'SIMULATED'}`);
+
+    // Source + verdict badges
+    const ds = results.mine.dataSource||'SIMULATED';
+    const dsC = ds.includes('REAL')?'16a34a':'d97706';
+    s5.addShape(pres.shapes.RECTANGLE, { x:0.5, y:1.22, w:2.8, h:0.42, fill:{color:dsC}, line:{color:'transparent'} });
+    s5.addText(`✓ ${ds}`, { x:0.5, y:1.22, w:2.8, h:0.42, fontSize:8, fontFace:'Calibri', bold:true, color:C.white, align:'center', valign:'middle', margin:0 });
+    s5.addShape(pres.shapes.RECTANGLE, { x:3.42, y:1.22, w:4.0, h:0.42, fill:{color:C.dark}, line:{color:C.steel} });
+    s5.addText(results.mine.verdict||'', { x:3.42, y:1.22, w:4.0, h:0.42, fontSize:9, fontFace:'Calibri', bold:true, color:C.offwh, align:'center', valign:'middle', margin:0 });
+    if (results.mine.postsAnalyzed>0) {
+      s5.addShape(pres.shapes.RECTANGLE, { x:7.54, y:1.22, w:2.2, h:0.42, fill:{color:C.ac+'33'}, line:{color:C.ac} });
+      s5.addText(`${results.mine.postsAnalyzed} Reddit posts`, { x:7.54, y:1.22, w:2.2, h:0.42, fontSize:8, fontFace:'Calibri', color:C.ac, align:'center', valign:'middle', margin:0 });
+    }
+
+    // Key quotes — show ALL (up to 12) in 2 columns
+    lbl(s5, 0.5, 1.82, 12.3, 'Key Quotes from Community');
+    const quotes = results.mine.keyQuotes||[];
+    const col1 = quotes.slice(0, Math.ceil(quotes.length/2));
+    const col2 = quotes.slice(Math.ceil(quotes.length/2));
+    const qh = Math.min(0.62, (5.1/Math.max(col1.length,1)));
+
+    col1.forEach((q, i) => {
+      const y = 2.12+(i*qh);
+      s5.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:6.1, h:qh-0.06, fill:{color:C.coal}, line:{color:C.steel} });
+      s5.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:0.06, h:qh-0.06, fill:{color:C.ac}, line:{color:C.ac} });
+      s5.addText(`${String(i+1).padStart(2,'0')}`, { x:0.62, y, w:0.32, h:qh-0.06, fontSize:7, fontFace:'Calibri', color:C.muted, valign:'middle', margin:0 });
+      s5.addText(`"${q}"`, { x:0.96, y, w:5.5, h:qh-0.06, fontSize:9, fontFace:'Georgia', italic:true, color:C.offwh, wrap:true, valign:'middle', margin:2 });
     });
-    sBr.addText('Revenue: ' + (b.revenueSignal || ''), { x: bx + 0.15, y: 4.15, w: 3.7, h: 0.3, fontSize: 9, fontFace: 'Calibri', color: '6B7280', margin: 0 });
-    sBr.addText(b.photographyStyle || '', { x: bx + 0.15, y: 4.5, w: 3.7, h: 1.5, fontSize: 9, fontFace: 'Calibri', color: '9CA3AF', wrap: true, italic: true, margin: 0 });
-  });
-}
+    col2.forEach((q, i) => {
+      const y = 2.12+(i*qh);
+      s5.addShape(pres.shapes.RECTANGLE, { x:6.72, y, w:6.08, h:qh-0.06, fill:{color:C.coal}, line:{color:C.steel} });
+      s5.addShape(pres.shapes.RECTANGLE, { x:6.72, y, w:0.06, h:qh-0.06, fill:{color:C.ac}, line:{color:C.ac} });
+      s5.addText(`${String(col1.length+i+1).padStart(2,'0')}`, { x:6.84, y, w:0.32, h:qh-0.06, fontSize:7, fontFace:'Calibri', color:C.muted, valign:'middle', margin:0 });
+      s5.addText(`"${q}"`, { x:7.18, y, w:5.5, h:qh-0.06, fontSize:9, fontFace:'Georgia', italic:true, color:C.offwh, wrap:true, valign:'middle', margin:2 });
+    });
 
-if (results.shopify) {
-  const sSh = pres.addSlide(); sSh.background = { color: C.bg };
-  sSh.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-  sSh.addText('WEBSITE BRIEF', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-  sSh.addText(results.shopify.heroSection?.headline || '', { x: 0.5, y: 1.08, w: 8, h: 0.8, fontSize: 28, fontFace: 'Georgia', bold: true, color: C.ink, wrap: true, margin: 0 });
-  sSh.addText(results.shopify.heroSection?.subline || '', { x: 0.5, y: 1.95, w: 8, h: 0.5, fontSize: 13, fontFace: 'Calibri', color: '6B7280', wrap: true, margin: 0 });
-  sSh.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 2.6, w: 2.2, h: 0.42, fill: { color: C.p1 }, line: { color: C.p1 } });
-  sSh.addText(results.shopify.heroSection?.cta || 'SHOP NOW', { x: 0.5, y: 2.6, w: 2.2, h: 0.42, fontSize: 10, fontFace: 'Calibri', bold: true, color: C.white, align: 'center', valign: 'middle', margin: 0 });
-  sSh.addText('PRODUCT DESCRIPTION', { x: 0.5, y: 3.2, w: 8, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
-  sSh.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 3.5, w: 8, h: 2.6, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-  sSh.addText((results.shopify.productDescription || '').slice(0, 400), { x: 0.7, y: 3.6, w: 7.6, h: 2.4, fontSize: 10, fontFace: 'Calibri', color: '374151', wrap: true, valign: 'top', margin: 0 });
-  sSh.addShape(pres.shapes.RECTANGLE, { x: 9.0, y: 1.08, w: 3.8, h: 5.5, fill: { color: C.ink }, line: { color: C.ink } });
-  sSh.addText('STORE DETAILS', { x: 9.2, y: 1.25, w: 3.4, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
-  [['Domain', results.shopify.domain], ['Theme', results.shopify.shopifyTheme], ['SEO Title', results.shopify.seoTitle], ['Upsell', results.shopify.upsellLogic], ['Email Capture', results.shopify.emailCaptureIdea]].forEach(([k, v], i) => {
-    sSh.addText(k.toUpperCase(), { x: 9.2, y: 1.6 + (i * 0.85), w: 3.4, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 2, margin: 0 });
-    sSh.addText(String(v || '—'), { x: 9.2, y: 1.82 + (i * 0.85), w: 3.4, h: 0.55, fontSize: 9, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
-  });
-}
+    // Confirmation paragraph
+    s5.addShape(pres.shapes.RECTANGLE, { x:0.5, y:7.12, w:12.3, h:0.0, fill:{color:C.steel}, line:{color:C.steel} });
+
+    // Product mentions
+    lbl(s5, 0.5, 7.2, 12.3, 'Product Mentions');
+    // (below — but slide is tall, so product mentions go on next half)
+  }
+
+  // SLIDE 5b — Product Mentions (continuation)
+  if (results.mine) {
+    const s5b = pres.addSlide();
+    s5b.background = { color:C.ink };
+    hdr(s5b, 'Product Mentions', 'Brand gap confirmation');
+
+    // Confirmation
+    quote(s5b, 0.5, 1.22, 12.3, 0.82, results.mine.confirmation||'', 11);
+
+    lbl(s5b, 0.5, 2.18, 12.3, 'Generic Language — No Brand Owns This');
+    (results.mine.productMentions||[]).slice(0,4).forEach((p, i) => {
+      const y = 2.5+(i*1.18);
+      s5b.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:12.3, h:1.08, fill:{color:i===0?C.dark:C.coal}, line:{color:C.steel}, shadow:soft() });
+      // Brand awareness badge
+      const baC = p.brandAwareness==='NONE'?'16a34a':p.brandAwareness==='LOW'?C.ac:'d97706';
+      s5b.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:0.12, h:1.08, fill:{color:baC}, line:{color:baC} });
+      s5b.addText(p.product||'', { x:0.78, y:y+0.1, w:5.5, h:0.45, fontSize:15, fontFace:'Georgia', bold:true, color:C.white, margin:0 });
+      s5b.addShape(pres.shapes.RECTANGLE, { x:6.4, y:y+0.12, w:2.2, h:0.32, fill:{color:baC+'33'}, line:{color:baC} });
+      s5b.addText(`brand: ${p.brandAwareness}`, { x:6.4, y:y+0.12, w:2.2, h:0.32, fontSize:8, fontFace:'Calibri', color:baC.length===6?C.white:C.white, align:'center', valign:'middle', margin:0 });
+      s5b.addShape(pres.shapes.RECTANGLE, { x:8.8, y:y+0.12, w:2.0, h:0.32, fill:{color:C.ghost}, line:{color:C.steel} });
+      s5b.addText(`intent: ${p.buyingIntent}`, { x:8.8, y:y+0.12, w:2.0, h:0.32, fontSize:8, fontFace:'Calibri', color:C.offwh, align:'center', valign:'middle', margin:0 });
+      s5b.addShape(pres.shapes.RECTANGLE, { x:11.0, y:y+0.12, w:1.65, h:0.32, fill:{color:C.ghost}, line:{color:C.steel} });
+      s5b.addText(`${p.mentionCount}× mentioned`, { x:11.0, y:y+0.12, w:1.65, h:0.32, fontSize:8, fontFace:'Calibri', color:C.muted, align:'center', valign:'middle', margin:0 });
+      s5b.addText(`"${p.genericLanguage}"`, { x:0.78, y:y+0.62, w:11.8, h:0.38, fontSize:9, fontFace:'Calibri', italic:true, color:C.muted, margin:0 });
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 7 — VALIDATION
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.validate) {
+    const s6 = pres.addSlide();
+    s6.background = { color:C.ink };
+    hdr(s6, 'Validation', 'Timing + Pricing');
+
+    // 3 hero cards
+    const vCards = [
+      ['DIFFUSION STAGE', results.validate.diffusionStage||'—', {ac:true, fs:18}],
+      ['TIMING',          results.validate.trendStatus||'—',    {fs:16}],
+      ['CONFIDENCE',      `${results.validate.confidence||'—'}/10`, {fs:22}],
+    ];
+    vCards.forEach(([k,v,o], i) => card(s6, 0.5+(i*4.1), 1.22, 3.9, 1.05, v, k, o));
+
+    // Data table rows
+    const rows = [
+      ['Trend',        results.validate.trendStatus],
+      ['Momentum',     results.validate.trendMomentum],
+      ['Saturation',   results.validate.brandSaturation],
+      ['Retail Price', results.validate.suggestedRetailPrice],
+      ['Cost to Make', results.validate.costToManufacture],
+      ['Gross Margin', results.validate.grossMarginPotential],
+    ];
+    rows.forEach(([k,v], i) => {
+      const y = 2.48+(i*0.55);
+      s6.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:12.3, h:0.48, fill:{color:i%2===0?C.coal:C.dark}, line:{color:C.steel} });
+      s6.addText(k.toUpperCase(), { x:0.7, y, w:3.5, h:0.48, fontSize:9, fontFace:'Calibri', color:C.muted, valign:'middle', charSpacing:1, margin:0 });
+      const isPrice = k.includes('Price')||k.includes('Make')||k.includes('Margin');
+      s6.addText(String(v||'—'), { x:4.2, y, w:8.4, h:0.48, fontSize:12, fontFace:isPrice?'Georgia':'Calibri', bold:isPrice, color:isPrice?C.ac:C.offwh, valign:'middle', margin:0 });
+    });
+
+    // Window of opportunity
+    if (results.validate.windowOfOpportunity) {
+      s6.addShape(pres.shapes.RECTANGLE, { x:0.5, y:5.84, w:12.3, h:0.82, fill:{color:C.dark}, line:{color:C.ac} });
+      rule(s6, 0.5, 5.84, 12.3);
+      lbl(s6, 0.7, 5.92, 3, 'Window of Opportunity', C.ac);
+      s6.addText(results.validate.windowOfOpportunity, { x:0.7, y:6.22, w:11.9, h:0.38, fontSize:13, fontFace:'Georgia', italic:true, color:C.offwh, wrap:true, margin:0 });
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 8 — THE TRIBE (AVATAR)
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.avatar) {
+    const s7 = pres.addSlide();
+    s7.background = { color:C.ink };
+    hdr(s7, 'The Tribe', results.avatar.tribeLabel||'');
+
+    // Persona name + age
+    s7.addText(results.avatar.personaName||'', { x:0.5, y:1.18, w:7.5, h:0.78, fontSize:36, fontFace:'Georgia', bold:true, color:C.white, margin:0 });
+    s7.addText(results.avatar.age ? `${results.avatar.age}  ·  ${results.avatar.coreIdentity||''}` : results.avatar.coreIdentity||'', {
+      x:0.5, y:1.98, w:7.5, h:0.38, fontSize:12, fontFace:'Calibri', color:C.muted, margin:0
+    });
+
+    // Tribal essence quote
+    quote(s7, 0.5, 2.48, 7.5, 0.82, results.avatar.tribalEssence||'', 11);
+
+    // Identity keyword pills
+    lbl(s7, 0.5, 3.45, 7.5, 'Identity Keywords');
+    (results.avatar.identityKeywords||[]).slice(0,6).forEach((kw, i) => {
+      const col=i%3, row=Math.floor(i/3);
+      const x=0.5+(col*2.52), y=3.78+(row*0.62);
+      s7.addShape(pres.shapes.RECTANGLE, { x, y, w:2.38, h:0.48, fill:{color:C.dark}, line:{color:C.steel} });
+      s7.addText(kw, { x, y, w:2.38, h:0.48, fontSize:10, fontFace:'Calibri', color:C.offwh, align:'center', valign:'middle', margin:0 });
+    });
+
+    // YouTube title patterns
+    lbl(s7, 0.5, 5.1, 7.5, 'YouTube Title Patterns They Create');
+    (results.avatar.youtubeTitlePatterns||[]).slice(0,3).forEach((pat, i) => {
+      s7.addShape(pres.shapes.RECTANGLE, { x:0.5, y:5.4+(i*0.62), w:7.5, h:0.52, fill:{color:C.coal}, line:{color:C.steel} });
+      s7.addText(pat, { x:0.7, y:5.4+(i*0.62), w:7.2, h:0.52, fontSize:10, fontFace:'Calibri', color:C.offwh, valign:'middle', margin:0 });
+    });
+
+    // Right panel — pain points etc
+    s7.addShape(pres.shapes.RECTANGLE, { x:8.25, y:1.18, w:4.75, h:6.05, fill:{color:C.coal}, line:{color:C.steel} });
+    rule(s7, 8.25, 1.18, 4.75);
+
+    const avRows = [
+      ['Aspiration',   results.avatar.aspirationalSelf],
+      ['Pain Point',   results.avatar.painPoint],
+      ['Wants to Feel',results.avatar.whatTheyWantToFeel],
+      ['Brand Killer', results.avatar.whatRepelsThem],
+      ['Product Role', results.avatar.productRole],
+    ];
+    avRows.forEach(([k,v], i) => {
+      const y = 1.38+(i*1.12);
+      lbl(s7, 8.42, y, 4.4, k, C.ac);
+      body(s7, 8.42, y+0.3, 4.4, 0.72, v||'—', 9.5, C.offwh);
+      if (i<4) div(s7, 8.42, y+1.06, 4.4);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 9 — BRAND RESEARCH
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.brands) {
+    const s8 = pres.addSlide();
+    s8.background = { color:C.ink };
+    hdr(s8, 'Inspiration Brands', 'Same avatar · Different category');
+
+    (results.brands.inspirationBrands||[]).slice(0,3).forEach((b, i) => {
+      const bx = 0.5+(i*4.28);
+      s8.addShape(pres.shapes.RECTANGLE, { x:bx, y:1.18, w:4.0, h:4.75, fill:{color:C.coal}, line:{color:C.steel}, shadow:elev() });
+      rule(s8, bx, 1.18, 4.0);
+      s8.addText(b.brand||'', { x:bx+0.2, y:1.32, w:2.8, h:0.62, fontSize:22, fontFace:'Georgia', bold:true, color:C.white, margin:0 });
+      // Visual keyword badge
+      if (b.visualKeyword) {
+        s8.addShape(pres.shapes.RECTANGLE, { x:bx+3.1, y:1.38, w:0.72, h:0.35, fill:{color:C.ac+'44'}, line:{color:C.ac} });
+        s8.addText(b.visualKeyword, { x:bx+3.1, y:1.38, w:0.72, h:0.35, fontSize:7, fontFace:'Calibri', color:C.ac, align:'center', valign:'middle', margin:0 });
+      }
+      s8.addText((b.category||'').toUpperCase(), { x:bx+0.2, y:1.96, w:3.6, h:0.25, fontSize:7, fontFace:'Calibri', color:C.muted, charSpacing:2, margin:0 });
+      div(s8, bx+0.2, 2.24, 3.6);
+      lbl(s8, bx+0.2, 2.38, 3.6, 'Why Same Avatar', C.ac);
+      body(s8, bx+0.2, 2.68, 3.6, 1.35, b.whySameAvatar||'', 9.5, C.offwh);
+      // Color swatches
+      lbl(s8, bx+0.2, 4.08, 3.6, 'Palette');
+      (b.colorPalette||[]).slice(0,4).forEach((hex, ci) => {
+        s8.addShape(pres.shapes.OVAL, { x:bx+0.2+(ci*0.72), y:4.35, w:0.52, h:0.52, fill:{color:hex.replace('#','')}, line:{color:C.steel} });
+      });
+      s8.addText('Revenue: '+(b.revenueSignal||'—'), { x:bx+0.2, y:4.98, w:3.6, h:0.28, fontSize:8, fontFace:'Calibri', bold:true, color:C.muted, margin:0 });
+    });
+
+    // Photography brief + model direction — full width at bottom
+    s8.addShape(pres.shapes.RECTANGLE, { x:0.5, y:6.08, w:12.3, h:1.18, fill:{color:C.dark}, line:{color:C.steel} });
+    rule(s8, 0.5, 6.08, 12.3);
+    lbl(s8, 0.7, 6.18, 5.5, 'Photography Brief');
+    body(s8, 0.7, 6.45, 5.8, 0.72, results.brands.photographyBrief||'', 8.5, C.offwh);
+    div(s8, 6.6, 6.18, 0.012);
+    lbl(s8, 6.7, 6.18, 5.9, 'Model Direction');
+    body(s8, 6.7, 6.45, 5.9, 0.72, results.brands.modelDirection||'', 8.5, C.offwh);
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 10 — BRAND IDENTITY
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.brand) {
+    const s9 = pres.addSlide();
+    s9.background = { color:C.ink };
+
+    // Full left panel in brand's primary color
+    s9.addShape(pres.shapes.RECTANGLE, { x:0, y:0, w:8.5, h:H, fill:{color:C.p1||C.ink}, line:{color:C.p1||C.ink} });
+    s9.addShape(pres.shapes.RECTANGLE, { x:0, y:0, w:0.28, h:H, fill:{color:C.ac}, line:{color:C.ac} });
+
+    // Brand name massive
+    s9.addText(brand.toUpperCase(), { x:0.55, y:0.55, w:7.7, h:2.8, fontSize:74, fontFace:'Georgia', bold:true, color:C.white, margin:0 });
+    s9.addText(`"${results.brand.tagline||''}"`, { x:0.55, y:3.48, w:7.7, h:0.62, fontSize:17, fontFace:'Georgia', italic:true, color:C.muted, margin:0 });
+    rule(s9, 0.55, 4.18, 7.5);
+    body(s9, 0.55, 4.3, 7.5, 0.72, results.brand.brandPromise||'', 11, C.offwh);
+
+    // Color swatches
+    lbl(s9, 0.55, 5.18, 5, 'Color Palette', C.muted);
+    Object.entries(pal).forEach(([k,v], i) => {
+      const hex=(v||'').replace('#','');
+      s9.addShape(pres.shapes.RECTANGLE, { x:0.55+(i*1.08), y:5.48, w:0.88, h:0.88, fill:{color:hex}, line:{color:C.steel}, shadow:soft() });
+      s9.addText(v||'', { x:0.55+(i*1.08), y:6.38, w:0.88, h:0.22, fontSize:5.5, fontFace:'Calibri', color:C.muted, align:'center', margin:0 });
+    });
+
+    // Brand voice
+    s9.addShape(pres.shapes.RECTANGLE, { x:0.55, y:6.72, w:4.5, h:0.45, fill:{color:C.ac}, line:{color:C.ac} });
+    s9.addText(`Voice: ${results.brand.brandVoice||''}`, { x:0.55, y:6.72, w:4.5, h:0.45, fontSize:10, fontFace:'Calibri', bold:true, color:C.white, align:'center', valign:'middle', margin:0 });
+
+    // Right panel
+    s9.addShape(pres.shapes.RECTANGLE, { x:8.5, y:0, w:W-8.5, h:H, fill:{color:C.coal}, line:{color:C.steel} });
+    rule(s9, 8.5, 0, W-8.5);
+
+    lbl(s9, 8.7, 0.38, 4.4, 'Hero Website Copy', C.muted);
+    s9.addText(results.brand.websiteHeroHeadline||'', { x:8.7, y:0.72, w:4.4, h:1.05, fontSize:19, fontFace:'Georgia', bold:true, color:C.white, wrap:true, margin:0 });
+    body(s9, 8.7, 1.82, 4.4, 0.72, results.brand.websiteHeroSubline||'', 10, C.muted);
+    s9.addShape(pres.shapes.RECTANGLE, { x:8.7, y:2.62, w:2.5, h:0.48, fill:{color:C.ac}, line:{color:C.ac} });
+    s9.addText(results.brand.ctaText||'SHOP NOW', { x:8.7, y:2.62, w:2.5, h:0.48, fontSize:10, fontFace:'Calibri', bold:true, color:C.white, align:'center', valign:'middle', margin:0 });
+
+    div(s9, 8.7, 3.28, 4.4);
+    lbl(s9, 8.7, 3.42, 4.4, 'Name Options', C.muted);
+    (results.brand.nameOptions||[]).slice(0,3).forEach((n, i) => {
+      const y = 3.75+(i*1.12);
+      const isW = n.name===brand;
+      s9.addShape(pres.shapes.RECTANGLE, { x:8.7, y, w:4.4, h:1.0, fill:{color:isW?C.ac+'22':C.dark}, line:{color:isW?C.ac:C.steel} });
+      s9.addText(n.name||'', { x:8.88, y:y+0.08, w:3.2, h:0.42, fontSize:17, fontFace:'Georgia', bold:true, color:isW?C.ac:C.white, margin:0 });
+      if (isW) s9.addText('✓', { x:11.88, y:y+0.08, w:0.55, h:0.42, fontSize:14, fontFace:'Georgia', bold:true, color:C.ac, align:'center', margin:0 });
+      body(s9, 8.88, y+0.52, 4.1, 0.38, n.aspirationalQuality||'', 8.5, C.muted);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 11 — WEBSITE BRIEF
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.shopify) {
+    const s10 = pres.addSlide();
+    s10.background = { color:C.ink };
+    hdr(s10, 'Website Brief', results.shopify.domain||'');
+
+    // Domain + Theme
+    s10.addShape(pres.shapes.RECTANGLE, { x:0.5, y:1.18, w:12.3, h:0.62, fill:{color:C.dark}, line:{color:C.steel} });
+    s10.addText('DOMAIN', { x:0.7, y:1.18, w:1.5, h:0.62, fontSize:7, fontFace:'Calibri', color:C.muted, valign:'middle', charSpacing:2, margin:0 });
+    s10.addText(results.shopify.domain||'', { x:2.2, y:1.18, w:3.0, h:0.62, fontSize:13, fontFace:'Georgia', bold:true, color:C.ac, valign:'middle', margin:0 });
+    s10.addText('THEME', { x:5.3, y:1.18, w:1.2, h:0.62, fontSize:7, fontFace:'Calibri', color:C.muted, valign:'middle', charSpacing:2, margin:0 });
+    body(s10, 6.5, 1.18, 6.3, 0.62, results.shopify.shopifyTheme||'', 9, C.offwh);
+
+    // Hero section mock
+    s10.addShape(pres.shapes.RECTANGLE, { x:0.5, y:1.98, w:7.8, h:2.95, fill:{color:C.coal}, line:{color:C.steel}, shadow:elev() });
+    rule(s10, 0.5, 1.98, 7.8);
+    lbl(s10, 0.7, 2.1, 6, 'Hero Section', C.muted);
+    s10.addText(results.shopify.heroSection?.headline||'', { x:0.7, y:2.42, w:7.4, h:0.88, fontSize:22, fontFace:'Georgia', bold:true, color:C.white, wrap:true, margin:0 });
+    body(s10, 0.7, 3.38, 7.4, 0.58, results.shopify.heroSection?.subline||'', 10, C.muted);
+    s10.addShape(pres.shapes.RECTANGLE, { x:0.7, y:4.05, w:2.2, h:0.48, fill:{color:C.ac}, line:{color:C.ac} });
+    s10.addText(results.shopify.heroSection?.cta||'SHOP NOW', { x:0.7, y:4.05, w:2.2, h:0.48, fontSize:10, fontFace:'Calibri', bold:true, color:C.white, align:'center', valign:'middle', margin:0 });
+
+    // Navigation
+    lbl(s10, 0.5, 5.08, 7.8, 'Navigation');
+    (results.shopify.navigation||[]).forEach((nav, i) => {
+      s10.addShape(pres.shapes.RECTANGLE, { x:0.5+(i*2.0), y:5.38, w:1.85, h:0.42, fill:{color:C.dark}, line:{color:C.steel} });
+      s10.addText(nav, { x:0.5+(i*2.0), y:5.38, w:1.85, h:0.42, fontSize:9, fontFace:'Calibri', color:C.offwh, align:'center', valign:'middle', margin:0 });
+    });
+
+    // Product description
+    s10.addShape(pres.shapes.RECTANGLE, { x:0.5, y:5.95, w:7.8, h:1.32, fill:{color:C.dark}, line:{color:C.steel} });
+    lbl(s10, 0.7, 6.05, 6, 'Product Description — Identity First', C.ac);
+    body(s10, 0.7, 6.35, 7.4, 0.85, results.shopify.productDescription||'', 9.5, C.offwh);
+
+    // Right panel
+    s10.addShape(pres.shapes.RECTANGLE, { x:8.55, y:1.98, w:4.45, h:5.29, fill:{color:C.coal}, line:{color:C.steel} });
+    rule(s10, 8.55, 1.98, 4.45);
+
+    [
+      ['Upsell Logic',    results.shopify.upsellLogic],
+      ['Email Capture',   results.shopify.emailCaptureIdea],
+      ['SEO Title',       results.shopify.seoTitle],
+      ['SEO Description', results.shopify.seoDescription],
+    ].forEach(([k,v], i) => {
+      const y = 2.12+(i*1.25);
+      lbl(s10, 8.72, y, 4.1, k, C.ac);
+      body(s10, 8.72, y+0.3, 4.1, 0.85, v||'—', 9, C.offwh);
+      if (i<3) div(s10, 8.72, y+1.18, 4.1);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 12 — CONTENT STRATEGY
+  // ════════════════════════════════════════════════════════════════════════════
   if (results.content) {
-    const s4 = pres.addSlide(); s4.background = { color: C.bg };
-    s4.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-    s4.addText('VIRAL CONTENT STRATEGY', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-    const hero = results.content.heroScript || {};
-const stitch = results.content.stitchVideo || {};
-// Left card — Hero Script
-s4.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 1.08, w: 6.1, h: 5.2, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
-s4.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 1.08, w: 6.1, h: 0.48, fill: { color: '1F2937' }, line: { color: '1F2937' } });
-s4.addText('HERO SCRIPT', { x: 0.6, y: 1.08, w: 5.9, h: 0.48, fontSize: 11, fontFace: 'Calibri', bold: true, color: C.white, valign: 'middle', margin: 0 });
-[['Hook 0–3s', hero.hook_0_3s], ['Setup 3–30s', hero.setup_3_30s], ['⚡ 30s Reveal', hero.reveal_30s], ['CTA', hero.cta_30_60s]].forEach(([lbl, val], j) => {
-  s4.addText(lbl, { x: 0.65, y: 1.72 + (j * 1.02), w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: j === 2 ? 'D97706' : '9CA3AF', charSpacing: 2, margin: 0 });
-  s4.addText(String(val || ''), { x: 0.65, y: 1.94 + (j * 1.02), w: 5.8, h: 0.7, fontSize: 10, fontFace: 'Calibri', color: '374151', wrap: true, valign: 'top', margin: 0 });
-});
-  s4.addText('VIRAL MECHANIC', { x: 0.65, y: 5.62, w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
-  s4.addText(hero.viralMechanic || '', { x: 0.65, y: 5.84, w: 5.8, h: 0.3, fontSize: 9, fontFace: 'Calibri', color: '6B7280', italic: true, wrap: true, margin: 0 });
-// Right card — Stitch Video + Retargeting
-s4.addShape(pres.shapes.RECTANGLE, { x: 6.9, y: 1.08, w: 6.1, h: 2.4, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
-s4.addShape(pres.shapes.RECTANGLE, { x: 6.9, y: 1.08, w: 6.1, h: 0.48, fill: { color: '1F2937' }, line: { color: '1F2937' } });
-s4.addText('STITCH VIDEO', { x: 7.0, y: 1.08, w: 5.9, h: 0.48, fontSize: 11, fontFace: 'Calibri', bold: true, color: C.white, valign: 'middle', margin: 0 });
-s4.addText('SEARCH FOR', { x: 7.05, y: 1.65, w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
-s4.addText(stitch.findQuery || '', { x: 7.05, y: 1.87, w: 5.8, h: 0.5, fontSize: 11, fontFace: 'Calibri', bold: true, color: C.ink, wrap: true, margin: 0 });
-s4.addText(stitch.whyItWorks || '', { x: 7.05, y: 2.42, w: 5.8, h: 0.9, fontSize: 10, fontFace: 'Calibri', color: '6B7280', wrap: true, margin: 0 });
-const ret = results.content.retargetingAd || {};
-s4.addShape(pres.shapes.RECTANGLE, { x: 6.9, y: 3.58, w: 6.1, h: 2.7, fill: { color: C.ink }, line: { color: C.ink }, shadow: mk() });
-s4.addShape(pres.shapes.RECTANGLE, { x: 6.9, y: 3.58, w: 6.1, h: 0.48, fill: { color: C.p1 }, line: { color: C.p1 } });
-s4.addText('RETARGETING AD', { x: 7.0, y: 3.58, w: 5.9, h: 0.48, fontSize: 11, fontFace: 'Calibri', bold: true, color: C.white, valign: 'middle', margin: 0 });
-s4.addText(ret.headline || '', { x: 7.05, y: 4.12, w: 5.8, h: 0.5, fontSize: 14, fontFace: 'Georgia', bold: true, color: C.white, wrap: true, margin: 0 });
-s4.addText(ret.body || '', { x: 7.05, y: 4.68, w: 5.8, h: 0.8, fontSize: 10, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
-s4.addShape(pres.shapes.RECTANGLE, { x: 7.05, y: 5.55, w: 2.0, h: 0.38, fill: { color: C.white }, line: { color: C.white } });
-s4.addText(ret.cta || 'SHOP NOW', { x: 7.05, y: 5.55, w: 2.0, h: 0.38, fontSize: 9, fontFace: 'Calibri', bold: true, color: C.ink, align: 'center', valign: 'middle', margin: 0 });
-  }
+    const s11 = pres.addSlide();
+    s11.background = { color:C.ink };
+    hdr(s11, 'Content Strategy', '30-second reveal formula');
 
-  if (results.supplier) {
-    const s5 = pres.addSlide(); s5.background = { color: C.bg };
-    s5.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
-    s5.addText('SUPPLIER PACK', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-    const bud = results.supplier.budget || results.supplier.estimatedBudget || {};
-    Object.entries(bud).forEach(([k, v], i) => {
-      const isT = k === 'total';
-      s5.addShape(pres.shapes.RECTANGLE, { x: 0.5 + (i * 2.52), y: 1.08, w: 2.38, h: 0.82, fill: { color: isT ? C.ink : C.faint }, line: { color: isT ? C.ink : 'E4E4E7' } });
-      s5.addText(String(v || '—'), { x: 0.5 + (i * 2.52), y: 1.1, w: 2.38, h: 0.5, fontSize: 18, fontFace: 'Georgia', bold: true, color: isT ? C.white : C.ink, align: 'center', valign: 'middle', margin: 0 });
-      s5.addText(k.toUpperCase(), { x: 0.5 + (i * 2.52), y: 1.62, w: 2.38, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: isT ? '6B7280' : '9CA3AF', align: 'center', charSpacing: 2, margin: 0 });
+    const hero   = results.content.heroScript||{};
+    const stitch = results.content.stitchVideo||{};
+    const ret    = results.content.retargetingAd||{};
+
+    // Left — stitch video (STEP 1)
+    s11.addShape(pres.shapes.RECTANGLE, { x:0.5, y:1.18, w:6.1, h:2.28, fill:{color:C.coal}, line:{color:C.steel}, shadow:soft() });
+    rule(s11, 0.5, 1.18, 6.1);
+    s11.addText('STEP 1  ·  STITCH VIDEO', { x:0.7, y:1.28, w:5.7, h:0.28, fontSize:7, fontFace:'Calibri', color:C.muted, charSpacing:2, margin:0 });
+    lbl(s11, 0.7, 1.62, 5.7, 'Search For', C.ac);
+    s11.addText(stitch.findQuery||'', { x:0.7, y:1.92, w:5.7, h:0.5, fontSize:14, fontFace:'Georgia', bold:true, color:C.white, wrap:true, margin:0 });
+    lbl(s11, 0.7, 2.48, 5.7, 'Why It Works', C.muted);
+    body(s11, 0.7, 2.78, 5.7, 0.6, stitch.whyItWorks||'', 9.5, C.offwh);
+
+    // Left — hero script (STEP 2)
+    s11.addShape(pres.shapes.RECTANGLE, { x:0.5, y:3.62, w:6.1, h:3.62, fill:{color:C.coal}, line:{color:C.steel}, shadow:soft() });
+    rule(s11, 0.5, 3.62, 6.1);
+    s11.addText('STEP 2  ·  HERO SCRIPT', { x:0.7, y:3.72, w:5.7, h:0.28, fontSize:7, fontFace:'Calibri', color:C.muted, charSpacing:2, margin:0 });
+
+    const scriptRows = [
+      ['Hook  0–3s',      hero.hook_0_3s,    C.white,  false],
+      ['Setup  3–30s',    hero.setup_3_30s,  C.offwh,  false],
+      ['⚡ 30s Reveal',   hero.reveal_30s,   C.ac,     true ],
+      ['CTA  30–60s',     hero.cta_30_60s,   C.offwh,  false],
+    ];
+    scriptRows.forEach(([lk, val, vc, isH], j) => {
+      const y = 4.08+(j*0.82);
+      if (isH) s11.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:6.1, h:0.72, fill:{color:C.ac+'1A'}, line:{color:C.ac+'55'} });
+      s11.addText(lk, { x:0.7, y:y+0.02, w:5.7, h:0.22, fontSize:6.5, fontFace:'Calibri', color:isH?C.ac:C.muted, charSpacing:2, margin:0 });
+      body(s11, 0.7, y+0.24, 5.7, 0.48, val||'', 9, vc);
     });
-    const b = results.supplier.factorySpec || results.supplier.manufacturingBrief || {};
-    s5.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 2.12, w: 12.3, h: 0.58, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-   s5.addText(`Materials: ${b.materials || b.qualityDifferentiator || ''}`, { x: 0.7, y: 2.12, w: 11.5, h: 0.58, fontSize: 11, fontFace: 'Calibri', color: '374151', valign: 'middle', wrap: true, margin: 0 });
-    s5.addText('OUTREACH MESSAGE', { x: 0.5, y: 2.9, w: 8, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 3, margin: 0 });
-    s5.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 3.2, w: 12.3, h: 3.55, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-    s5.addText((results.supplier.outreachMessage || '').slice(0, 320) + '…', { x: 0.7, y: 3.3, w: 11.8, h: 3.3, fontSize: 10, fontFace: 'Calibri', color: '6B7280', wrap: true, valign: 'top', margin: 0 });
+
+    // Viral mechanic
+    s11.addShape(pres.shapes.RECTANGLE, { x:0.5, y:7.1, w:6.1, h:0.0, fill:{color:C.steel}, line:{color:C.steel} });
+
+    // Right — retargeting (STEP 3)
+    s11.addShape(pres.shapes.RECTANGLE, { x:6.85, y:1.18, w:6.15, h:3.58, fill:{color:C.ink}, line:{color:C.ac}, shadow:glow() });
+    rule(s11, 6.85, 1.18, 6.15);
+    s11.addText('STEP 3  ·  RETARGETING AD  (50%+ viewers)', { x:7.05, y:1.28, w:5.75, h:0.28, fontSize:7, fontFace:'Calibri', color:C.muted, charSpacing:2, margin:0 });
+    s11.addText(ret.headline||'', { x:7.05, y:1.65, w:5.75, h:0.98, fontSize:18, fontFace:'Georgia', bold:true, color:C.white, wrap:true, margin:0 });
+    body(s11, 7.05, 2.72, 5.75, 1.0, ret.body||'', 10, C.offwh);
+    s11.addShape(pres.shapes.RECTANGLE, { x:7.05, y:3.88, w:2.4, h:0.48, fill:{color:C.ac}, line:{color:C.ac} });
+    s11.addText(ret.cta||'SHOP NOW', { x:7.05, y:3.88, w:2.4, h:0.48, fontSize:10, fontFace:'Calibri', bold:true, color:C.white, align:'center', valign:'middle', margin:0 });
+
+    // Why it spreads
+    s11.addShape(pres.shapes.RECTANGLE, { x:6.85, y:4.92, w:6.15, h:2.32, fill:{color:C.dark}, line:{color:C.steel} });
+    lbl(s11, 7.05, 5.05, 5.75, 'Why It Spreads', C.ac);
+    body(s11, 7.05, 5.35, 5.75, 1.8, hero.viralMechanic||'', 10, C.offwh);
   }
 
-  const s6 = pres.addSlide(); s6.background = { color: C.ink };
-  s6.addText('WHAT HAPPENS NEXT', { x: 0.5, y: 0.5, w: 12, h: 1.1, fontSize: 48, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
-  s6.addText('THE 30-DAY LAUNCH PLAYBOOK', { x: 0.5, y: 1.55, w: 12, h: 0.3, fontSize: 10, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
-  [['WEEK 1', 'Manufacturing', `Contact ${results.supplier?.alibabaStrategy?.suppliersToContact || '20-50'} Alibaba suppliers. Request samples + quotes.`],
-   ['WEEK 2', 'Photo Shoot', 'One professional shoot. Real model. Real location. Authentic content.'],
-   ['WEEK 3', 'Launch Content', '3 videos using 30s transition formula. No ads yet. Organic only.'],
-   ['WEEK 4', 'Retargeting', `Static ads to 50%+ viewers. Expected CVR: ${results.content?.retargetingStrategy?.expectedCVR || '7%+'}`]
-  ].forEach(([wk, title, desc], i) => {
-    const bx = 0.5 + (i * 3.2);
-    s6.addShape(pres.shapes.RECTANGLE, { x: bx, y: 2.1, w: 3.0, h: 4.9, fill: { color: '1F2937' }, line: { color: '374151' } });
-    s6.addShape(pres.shapes.RECTANGLE, { x: bx, y: 2.1, w: 3.0, h: 0.05, fill: { color: C.p1 }, line: { color: C.p1 } });
-    s6.addText(wk, { x: bx + 0.15, y: 2.22, w: 2.7, h: 0.25, fontSize: 8, fontFace: 'Calibri', color: '6B7280', charSpacing: 2, margin: 0 });
-    s6.addText(title, { x: bx + 0.15, y: 2.5, w: 2.7, h: 0.55, fontSize: 15, fontFace: 'Georgia', bold: true, color: C.white, margin: 0 });
-    s6.addText(desc, { x: bx + 0.15, y: 3.15, w: 2.7, h: 2.5, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, valign: 'top', margin: 0 });
-    s6.addText(String(i + 1), { x: bx + 0.15, y: 5.6, w: 2.7, h: 1.1, fontSize: 56, fontFace: 'Georgia', bold: true, color: '374151', margin: 0 });
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 13 — SUPPLIER PACK
+  // ════════════════════════════════════════════════════════════════════════════
+  if (results.supplier) {
+    const s12 = pres.addSlide();
+    s12.background = { color:C.ink };
+    hdr(s12, 'Supplier Pack', 'China sourcing brief');
+
+    const spec = results.supplier.factorySpec||results.supplier.manufacturingBrief||{};
+    const bud  = results.supplier.budget||results.supplier.estimatedBudget||{};
+
+    // Sourcing region
+    s12.addShape(pres.shapes.RECTANGLE, { x:0.5, y:1.18, w:12.3, h:0.85, fill:{color:C.dark}, line:{color:C.steel} });
+    rule(s12, 0.5, 1.18, 12.3);
+    lbl(s12, 0.7, 1.28, 2.5, 'Best Sourcing Region', C.ac);
+    body(s12, 0.7, 1.55, 11.9, 0.42, results.supplier.sourcingRegion||'', 10, C.offwh);
+
+    // Factory spec cards
+    const specCards = [
+      ['MOQ',       spec.moq,        {}],
+      ['COGS',      spec.targetCOGS, {ac:true}],
+      ['MARGIN',    spec.margin,     {}],
+      ['LEAD TIME', spec.leadTime,   {}],
+    ];
+    specCards.forEach(([k,v,o], i) => card(s12, 0.5+(i*3.1), 2.18, 2.9, 0.92, v, k, {...o, fs:18}));
+
+    // Materials
+    s12.addShape(pres.shapes.RECTANGLE, { x:0.5, y:3.25, w:12.3, h:0.78, fill:{color:C.coal}, line:{color:C.steel} });
+    lbl(s12, 0.7, 3.32, 2.5, 'Materials', C.ac);
+    body(s12, 0.7, 3.58, 11.9, 0.38, spec.materials||spec.qualityDifferentiator||'', 9, C.offwh);
+
+    // Alibaba terms
+    lbl(s12, 0.5, 4.18, 12.3, 'Alibaba Search Terms');
+    (results.supplier.alibabaTerms||[]).slice(0,5).forEach((t, i) => {
+      s12.addShape(pres.shapes.RECTANGLE, { x:0.5+(i*2.48), y:4.48, w:2.32, h:0.42, fill:{color:C.dark}, line:{color:C.steel} });
+      s12.addText(t, { x:0.5+(i*2.48), y:4.48, w:2.32, h:0.42, fontSize:8.5, fontFace:'Calibri', color:C.offwh, align:'center', valign:'middle', wrap:true, margin:3 });
+    });
+
+    // Sample checklist
+    lbl(s12, 0.5, 5.05, 6.0, 'Sample Checklist');
+    (results.supplier.sampleChecklist||[]).slice(0,4).forEach((item, i) => {
+      const y = 5.35+(i*0.5);
+      s12.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:6.0, h:0.42, fill:{color:C.coal}, line:{color:C.steel} });
+      s12.addShape(pres.shapes.RECTANGLE, { x:0.5, y, w:0.35, h:0.42, fill:{color:'16a34a'}, line:{color:'16a34a'} });
+      s12.addText('✓', { x:0.5, y, w:0.35, h:0.42, fontSize:9, fontFace:'Calibri', bold:true, color:C.white, align:'center', valign:'middle', margin:0 });
+      body(s12, 0.92, y, 5.5, 0.42, item, 8.5, C.offwh);
+    });
+
+    // Budget
+    lbl(s12, 6.72, 5.05, 5.95, 'Launch Budget');
+    const budEntries = Object.entries(bud);
+    budEntries.forEach(([k,v], i) => {
+      const isT = k==='total';
+      const x = 6.72+(i*(5.95/Math.max(budEntries.length,1)));
+      const w = (5.95/Math.max(budEntries.length,1))-0.12;
+      card(s12, x, 5.35, w, 1.55, v, k.toUpperCase(), {ac:isT, fs:isT?20:16});
+    });
+
+    // Outreach message
+    lbl(s12, 0.5, 7.42, 12.3, 'Copy-Paste Outreach Message');
+  }
+
+  // SLIDE 12b — Outreach message full
+  if (results.supplier?.outreachMessage) {
+    const s12b = pres.addSlide();
+    s12b.background = { color:C.ink };
+    hdr(s12b, 'Outreach Message', 'Copy and paste — ready to send');
+
+    s12b.addShape(pres.shapes.RECTANGLE, { x:0.5, y:1.18, w:12.3, h:5.98, fill:{color:C.coal}, line:{color:C.steel} });
+    rule(s12b, 0.5, 1.18, 12.3);
+    s12b.addText(results.supplier.outreachMessage||'', {
+      x:0.7, y:1.38, w:11.9, h:5.72,
+      fontSize:10, fontFace:'Calibri', color:C.offwh,
+      wrap:true, valign:'top', margin:0
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SLIDE 14 — 30-DAY PLAYBOOK
+  // ════════════════════════════════════════════════════════════════════════════
+  const sLast = pres.addSlide();
+  sLast.background = { color:C.ink };
+  rule(sLast, 0, 0, W);
+
+  sLast.addText('What Happens Next', { x:0.5, y:0.28, w:12, h:1.15, fontSize:52, fontFace:'Georgia', bold:true, color:C.white, margin:0 });
+  sLast.addText('THE 30-DAY LAUNCH PLAYBOOK', { x:0.5, y:1.48, w:12, h:0.32, fontSize:9, fontFace:'Calibri', color:C.muted, charSpacing:4, margin:0 });
+  div(sLast, 0.5, 1.88, 12);
+
+  const weeks = [
+    ['WEEK 1', 'Manufacturing',   `Contact 20–50 Alibaba suppliers. Use the outreach template verbatim. Budget ~$300–500 for samples. Evaluate on texture, pH, packaging integrity.`],
+    ['WEEK 2', 'Photo Shoot',     `One shoot. Real model. Real location. Identity-first framing — not product hero shots. Shoot 30+ stills + raw B-roll. No studio backdrops.`],
+    ['WEEK 3', 'Launch Content',  `Post 3 videos using the 30s reveal formula. Stitch → Hero script → iterate. Zero paid ads. Pure organic. Watch retention graphs at 30s.`],
+    ['WEEK 4', 'Retargeting',     `Run static image ads to 50%+ video viewers. Expected CVR 7%+. Test 2 headlines. Scale the winner. Kill the loser on day 3.`],
+  ];
+
+  weeks.forEach(([wk, title, desc], i) => {
+    const bx = 0.5+(i*3.22);
+    sLast.addShape(pres.shapes.RECTANGLE, { x:bx, y:2.12, w:3.0, h:5.1, fill:{color:C.dark}, line:{color:C.steel}, shadow:soft() });
+    sLast.addShape(pres.shapes.RECTANGLE, { x:bx, y:2.12, w:3.0, h:0.06, fill:{color:C.ac}, line:{color:C.ac} });
+    sLast.addText(wk, { x:bx+0.18, y:2.22, w:2.65, h:0.28, fontSize:7.5, fontFace:'Calibri', color:C.muted, charSpacing:2.5, margin:0 });
+    sLast.addText(title, { x:bx+0.18, y:2.55, w:2.65, h:0.62, fontSize:18, fontFace:'Georgia', bold:true, color:C.white, margin:0 });
+    div(sLast, bx+0.18, 3.22, 2.65);
+    body(sLast, bx+0.18, 3.38, 2.65, 2.85, desc, 9.5, C.offwh);
+    sLast.addText(String(i+1), { x:bx+0.18, y:5.72, w:2.65, h:1.28, fontSize:64, fontFace:'Georgia', bold:true, color:C.ghost, margin:0 });
   });
 
-  await pres.writeFile({ fileName: `${brand}-Brand-Report.pptx` });
+  await pres.writeFile({ fileName:`${brand}-Brand-Report.pptx` });
 }
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
