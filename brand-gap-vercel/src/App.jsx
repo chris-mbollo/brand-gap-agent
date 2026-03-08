@@ -1011,6 +1011,8 @@ s4.addText('HERO SCRIPT', { x: 0.6, y: 1.08, w: 5.9, h: 0.48, fontSize: 11, font
   s4.addText(lbl, { x: 0.65, y: 1.72 + (j * 1.02), w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: j === 2 ? 'D97706' : '9CA3AF', charSpacing: 2, margin: 0 });
   s4.addText(String(val || ''), { x: 0.65, y: 1.94 + (j * 1.02), w: 5.8, h: 0.7, fontSize: 10, fontFace: 'Calibri', color: '374151', wrap: true, valign: 'top', margin: 0 });
 });
+  s4.addText('VIRAL MECHANIC', { x: 0.65, y: 5.62, w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
+  s4.addText(hero.viralMechanic || '', { x: 0.65, y: 5.84, w: 5.8, h: 0.3, fontSize: 9, fontFace: 'Calibri', color: '6B7280', italic: true, wrap: true, margin: 0 });
 // Right card — Stitch Video + Retargeting
 s4.addShape(pres.shapes.RECTANGLE, { x: 6.9, y: 1.08, w: 6.1, h: 2.4, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
 s4.addShape(pres.shapes.RECTANGLE, { x: 6.9, y: 1.08, w: 6.1, h: 0.48, fill: { color: '1F2937' }, line: { color: '1F2937' } });
