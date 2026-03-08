@@ -896,7 +896,64 @@ s2b.addText(compositeExplain, { x: 8.5, y: 5.2, w: 4.2, h: 0.9, fontSize: 8, fon
     s3.addText('BRAND VOICE', { x: 9.2, y: 3.6, w: 3.4, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
     s3.addText(results.brand.brandVoice || '', { x: 9.2, y: 3.88, w: 3.4, h: 0.5, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
   }
+if (results.avatar) {
+  const sAv = pres.addSlide(); sAv.background = { color: C.bg };
+  sAv.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
+  sAv.addText('THE TRIBE', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
+  sAv.addText(results.avatar.personaName || '', { x: 0.5, y: 1.08, w: 8, h: 0.6, fontSize: 28, fontFace: 'Georgia', bold: true, color: C.ink, margin: 0 });
+  sAv.addText(results.avatar.coreIdentity || '', { x: 0.5, y: 1.72, w: 8, h: 0.4, fontSize: 13, fontFace: 'Calibri', color: '6B7280', margin: 0 });
+  sAv.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 2.3, w: 5.8, h: 0.58, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
+  sAv.addText(`"${results.avatar.aspirationalSelf || ''}"`, { x: 0.7, y: 2.3, w: 5.4, h: 0.58, fontSize: 11, fontFace: 'Georgia', italic: true, color: '374151', valign: 'middle', wrap: true, margin: 0 });
+  [['Pain Point', results.avatar.painPoint], ['What They Want to Feel', results.avatar.whatTheyWantToFeel], ['What Repels Them', results.avatar.whatRepelsThem]].forEach(([k, v], i) => {
+    sAv.addText(k.toUpperCase(), { x: 0.5, y: 3.1 + (i * 0.9), w: 3, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
+    sAv.addText(String(v || ''), { x: 0.5, y: 3.32 + (i * 0.9), w: 5.8, h: 0.5, fontSize: 11, fontFace: 'Calibri', color: '374151', wrap: true, margin: 0 });
+  });
+  const keywords = results.avatar.identityKeywords || [];
+  keywords.slice(0, 6).forEach((kw, i) => {
+    sAv.addShape(pres.shapes.RECTANGLE, { x: 7.0 + ((i % 3) * 2.1), y: 1.08 + (Math.floor(i / 3) * 0.65), w: 1.9, h: 0.5, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
+    sAv.addText(kw, { x: 7.0 + ((i % 3) * 2.1), y: 1.08 + (Math.floor(i / 3) * 0.65), w: 1.9, h: 0.5, fontSize: 10, fontFace: 'Calibri', color: C.ink, align: 'center', valign: 'middle', margin: 0 });
+  });
+  sAv.addText('TRIBAL ESSENCE', { x: 7.0, y: 2.5, w: 6.0, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
+  sAv.addShape(pres.shapes.RECTANGLE, { x: 7.0, y: 2.8, w: 6.0, h: 3.8, fill: { color: C.ink }, line: { color: C.ink } });
+  sAv.addText(results.avatar.tribalEssence || '', { x: 7.2, y: 2.95, w: 5.6, h: 3.5, fontSize: 12, fontFace: 'Georgia', italic: true, color: '9CA3AF', wrap: true, valign: 'middle', margin: 0 });
+}
 
+if (results.brands) {
+  const sBr = pres.addSlide(); sBr.background = { color: C.bg };
+  sBr.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
+  sBr.addText('INSPIRATION BRANDS', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
+  (results.brands.inspirationBrands || []).slice(0, 3).forEach((b, i) => {
+    const bx = 0.5 + (i * 4.3);
+    sBr.addShape(pres.shapes.RECTANGLE, { x: bx, y: 1.08, w: 4.0, h: 5.5, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
+    sBr.addText(b.brand || '', { x: bx + 0.15, y: 1.2, w: 3.7, h: 0.6, fontSize: 20, fontFace: 'Georgia', bold: true, color: C.ink, margin: 0 });
+    sBr.addText((b.category || '').toUpperCase(), { x: bx + 0.15, y: 1.82, w: 3.7, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
+    sBr.addText(b.whySameAvatar || '', { x: bx + 0.15, y: 2.15, w: 3.7, h: 1.2, fontSize: 10, fontFace: 'Calibri', color: '374151', wrap: true, margin: 0 });
+    (b.colorPalette || []).slice(0, 3).forEach((hex, ci) => {
+      sBr.addShape(pres.shapes.OVAL, { x: bx + 0.15 + (ci * 0.65), y: 3.5, w: 0.5, h: 0.5, fill: { color: hex.replace('#', '') }, line: { color: 'E4E4E7' } });
+    });
+    sBr.addText('Revenue: ' + (b.revenueSignal || ''), { x: bx + 0.15, y: 4.15, w: 3.7, h: 0.3, fontSize: 9, fontFace: 'Calibri', color: '6B7280', margin: 0 });
+    sBr.addText(b.photographyStyle || '', { x: bx + 0.15, y: 4.5, w: 3.7, h: 1.5, fontSize: 9, fontFace: 'Calibri', color: '9CA3AF', wrap: true, italic: true, margin: 0 });
+  });
+}
+
+if (results.shopify) {
+  const sSh = pres.addSlide(); sSh.background = { color: C.bg };
+  sSh.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
+  sSh.addText('WEBSITE BRIEF', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
+  sSh.addText(results.shopify.heroSection?.headline || '', { x: 0.5, y: 1.08, w: 8, h: 0.8, fontSize: 28, fontFace: 'Georgia', bold: true, color: C.ink, wrap: true, margin: 0 });
+  sSh.addText(results.shopify.heroSection?.subline || '', { x: 0.5, y: 1.95, w: 8, h: 0.5, fontSize: 13, fontFace: 'Calibri', color: '6B7280', wrap: true, margin: 0 });
+  sSh.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 2.6, w: 2.2, h: 0.42, fill: { color: C.p1 }, line: { color: C.p1 } });
+  sSh.addText(results.shopify.heroSection?.cta || 'SHOP NOW', { x: 0.5, y: 2.6, w: 2.2, h: 0.42, fontSize: 10, fontFace: 'Calibri', bold: true, color: C.white, align: 'center', valign: 'middle', margin: 0 });
+  sSh.addText('PRODUCT DESCRIPTION', { x: 0.5, y: 3.2, w: 8, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
+  sSh.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 3.5, w: 8, h: 2.6, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
+  sSh.addText((results.shopify.productDescription || '').slice(0, 400), { x: 0.7, y: 3.6, w: 7.6, h: 2.4, fontSize: 10, fontFace: 'Calibri', color: '374151', wrap: true, valign: 'top', margin: 0 });
+  sSh.addShape(pres.shapes.RECTANGLE, { x: 9.0, y: 1.08, w: 3.8, h: 5.5, fill: { color: C.ink }, line: { color: C.ink } });
+  sSh.addText('STORE DETAILS', { x: 9.2, y: 1.25, w: 3.4, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
+  [['Domain', results.shopify.domain], ['Theme', results.shopify.shopifyTheme], ['SEO Title', results.shopify.seoTitle], ['Upsell', results.shopify.upsellLogic], ['Email Capture', results.shopify.emailCaptureIdea]].forEach(([k, v], i) => {
+    sSh.addText(k.toUpperCase(), { x: 9.2, y: 1.6 + (i * 0.85), w: 3.4, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 2, margin: 0 });
+    sSh.addText(String(v || '—'), { x: 9.2, y: 1.82 + (i * 0.85), w: 3.4, h: 0.55, fontSize: 9, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
+  });
+}
   if (results.content) {
     const s4 = pres.addSlide(); s4.background = { color: C.bg };
     s4.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
@@ -906,7 +963,7 @@ s2b.addText(compositeExplain, { x: 8.5, y: 5.2, w: 4.2, h: 0.9, fontSize: 8, fon
       s4.addShape(pres.shapes.RECTANGLE, { x: bx, y: 1.08, w: 6.1, h: 5.2, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
       s4.addShape(pres.shapes.RECTANGLE, { x: bx, y: 1.08, w: 6.1, h: 0.48, fill: { color: '1F2937' }, line: { color: '1F2937' } });
       s4.addText(v.title || '', { x: bx + 0.1, y: 1.08, w: 5.9, h: 0.48, fontSize: 11, fontFace: 'Calibri', bold: true, color: C.white, valign: 'middle', margin: 0 });
-      [['Hook 0–3s', v.hook_0_3s], ['Setup 3–30s', v.setup_3_30s], ['⚡ 30s X-Factor', v.transition_30s], ['Close', v.close_30_60s]].forEach(([lbl, val], j) => {
+     [['Hook 0–3s', v.hook_0_3s || results.content.heroScript?.hook_0_3s], ['Setup 3–30s', v.setup_3_30s || results.content.heroScript?.setup_3_30s], ['⚡ 30s Reveal', v.transition_30s || results.content.heroScript?.reveal_30s], ['CTA', v.close_30_60s || results.content.heroScript?.cta_30_60s]].forEach(([lbl, val], j) => {
         s4.addText(lbl, { x: bx + 0.15, y: 1.72 + (j * 1.02), w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: j === 2 ? 'D97706' : '9CA3AF', charSpacing: 2, margin: 0 });
         s4.addText(String(val || ''), { x: bx + 0.15, y: 1.94 + (j * 1.02), w: 5.8, h: 0.7, fontSize: 10, fontFace: 'Calibri', color: '374151', wrap: true, valign: 'top', margin: 0 });
       });
@@ -917,16 +974,16 @@ s2b.addText(compositeExplain, { x: 8.5, y: 5.2, w: 4.2, h: 0.9, fontSize: 8, fon
     const s5 = pres.addSlide(); s5.background = { color: C.bg };
     s5.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
     s5.addText('SUPPLIER PACK', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
-    const bud = results.supplier.estimatedBudget || {};
+    const bud = results.supplier.budget || results.supplier.estimatedBudget || {};
     Object.entries(bud).forEach(([k, v], i) => {
       const isT = k === 'total';
       s5.addShape(pres.shapes.RECTANGLE, { x: 0.5 + (i * 2.52), y: 1.08, w: 2.38, h: 0.82, fill: { color: isT ? C.ink : C.faint }, line: { color: isT ? C.ink : 'E4E4E7' } });
       s5.addText(String(v || '—'), { x: 0.5 + (i * 2.52), y: 1.1, w: 2.38, h: 0.5, fontSize: 18, fontFace: 'Georgia', bold: true, color: isT ? C.white : C.ink, align: 'center', valign: 'middle', margin: 0 });
       s5.addText(k.toUpperCase(), { x: 0.5 + (i * 2.52), y: 1.62, w: 2.38, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: isT ? '6B7280' : '9CA3AF', align: 'center', charSpacing: 2, margin: 0 });
     });
-    const b = results.supplier.manufacturingBrief || {};
+    const b = results.supplier.factorySpec || results.supplier.manufacturingBrief || {};
     s5.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 2.12, w: 12.3, h: 0.58, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
-    s5.addText(`Quality diff: ${b.qualityDifferentiator || ''}`, { x: 0.7, y: 2.12, w: 11.5, h: 0.58, fontSize: 11, fontFace: 'Calibri', color: '374151', valign: 'middle', wrap: true, margin: 0 });
+   s5.addText(`Materials: ${b.materials || b.qualityDifferentiator || ''}`, { x: 0.7, y: 2.12, w: 11.5, h: 0.58, fontSize: 11, fontFace: 'Calibri', color: '374151', valign: 'middle', wrap: true, margin: 0 });
     s5.addText('OUTREACH MESSAGE', { x: 0.5, y: 2.9, w: 8, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 3, margin: 0 });
     s5.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 3.2, w: 12.3, h: 3.55, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
     s5.addText((results.supplier.outreachMessage || '').slice(0, 320) + '…', { x: 0.7, y: 3.3, w: 11.8, h: 3.3, fontSize: 10, fontFace: 'Calibri', color: '6B7280', wrap: true, valign: 'top', margin: 0 });
