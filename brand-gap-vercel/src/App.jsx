@@ -119,7 +119,14 @@ async function fetchTrends(q, community = '', problem = '') {
     return await res.json();
   } catch { return null; }
 }
-
+async function fetchReddit(q, community = '') {
+  try {
+    const params = new URLSearchParams({ q, community });
+    const res = await fetch(`/api/reddit?${params}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
 // ─── PROMPTS ──────────────────────────────────────────────────────────────────
 const P = {
   gap: (market) => `You are the sharpest brand gap analyst alive. Your job is to find the single best unbranded sub-category inside "${market}" — a pocket where consumers already spend freely but no brand owns the space.
