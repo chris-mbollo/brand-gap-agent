@@ -248,9 +248,10 @@ Return ONLY JSON: {"sourcingRegion":"best Chinese city and why","factorySpec":{"
 // ─── STAGES ───────────────────────────────────────────────────────────────────
 const STAGES = [
   { id:"gap",      label:"Brand Gap",         icon:"◎", color:"#111827", desc:"Sub-community scan" },
-  { id:"youtube",  label:"YouTube Data",      icon:"▶", color:"#2563eb", desc:"Real transcripts",    isData:true },
+  { id:"youtube",  label:"YouTube Data",      icon:"▶", color:"#2563eb", desc:"Video transcripts",     isData:true },
+  { id:"reddit",   label:"Reddit Data",       icon:"⬡", color:"#dc2626", desc:"Community discussions", isData:true },
   { id:"trends",   label:"Google Trends",     icon:"↗", color:"#16a34a", desc:"Search momentum",     isData:true },
-  { id:"mine",     label:"Signal Analysis",   icon:"⟁", color:"#2563eb", desc:"Reading transcripts" },
+  { id:"mine",     label:"Signal Analysis",   icon:"⟁", color:"#2563eb", desc:"Reading community data" },
   { id:"validate", label:"Validation",        icon:"◈", color:"#d97706", desc:"Timing + pricing" },
   { id:"avatar",   label:"Avatar",            icon:"◉", color:"#7c3aed", desc:"The tribe" },
   { id:"brands",   label:"Brand Research",    icon:"◌", color:"#16a34a", desc:"Aesthetic DNA" },
