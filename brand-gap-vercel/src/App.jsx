@@ -915,6 +915,30 @@ s2b.addText(compositeExplain, { x: 8.5, y: 5.2, w: 4.2, h: 0.9, fontSize: 8, fon
     s3.addText('BRAND VOICE', { x: 9.2, y: 3.6, w: 3.4, h: 0.25, fontSize: 7, fontFace: 'Calibri', color: '6B7280', charSpacing: 3, margin: 0 });
     s3.addText(results.brand.brandVoice || '', { x: 9.2, y: 3.88, w: 3.4, h: 0.5, fontSize: 11, fontFace: 'Calibri', color: '9CA3AF', wrap: true, margin: 0 });
   }
+  
+if (results.reddit) {
+  const sRe = pres.addSlide(); sRe.background = { color: C.bg };
+  sRe.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
+  sRe.addText('COMMUNITY SIGNAL', { x: 0.5, y: 0, w: W - 1, h: 0.9, fontSize: 26, fontFace: 'Georgia', bold: true, color: C.white, valign: 'middle', margin: 0 });
+  sRe.addText(`${results.reddit.postsFound || 0} Reddit discussions analyzed across r/${(results.reddit.subreddits || []).slice(0,3).join(', r/')}`, { x: 0.5, y: 1.0, w: 12.3, h: 0.4, fontSize: 11, fontFace: 'Calibri', color: '6B7280', margin: 0 });
+  (results.reddit.posts || []).slice(0, 6).forEach((p, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const bx = 0.5 + (col * 6.4);
+    const by = 1.55 + (row * 1.75);
+    sRe.addShape(pres.shapes.RECTANGLE, { x: bx, y: by, w: 6.1, h: 1.6, fill: { color: C.faint }, line: { color: 'E4E4E7' }, shadow: mk() });
+    sRe.addText(`r/${p.subreddit}`, { x: bx + 0.15, y: by + 0.1, w: 5.8, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: C.p1, charSpacing: 2, margin: 0 });
+    sRe.addText(p.title || '', { x: bx + 0.15, y: by + 0.32, w: 5.8, h: 0.45, fontSize: 11, fontFace: 'Calibri', bold: true, color: C.ink, wrap: true, margin: 0 });
+    sRe.addText(p.snippet || '', { x: bx + 0.15, y: by + 0.82, w: 5.8, h: 0.65, fontSize: 9, fontFace: 'Calibri', color: '6B7280', wrap: true, margin: 0 });
+  });
+  const signals = results.reddit.signals || {};
+  if ((signals.buyingSignals || []).length > 0) {
+    sRe.addText('BUYING SIGNALS DETECTED', { x: 0.5, y: 6.85, w: 12.3, h: 0.2, fontSize: 7, fontFace: 'Calibri', color: '9CA3AF', charSpacing: 2, margin: 0 });
+    sRe.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 7.08, w: 12.3, h: 0.28, fill: { color: C.faint }, line: { color: 'E4E4E7' } });
+    sRe.addText(signals.buyingSignals.slice(0, 2).join('  ·  '), { x: 0.7, y: 7.08, w: 11.8, h: 0.28, fontSize: 9, fontFace: 'Calibri', color: '374151', valign: 'middle', margin: 0 });
+  }
+}
+  
 if (results.avatar) {
   const sAv = pres.addSlide(); sAv.background = { color: C.bg };
   sAv.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: W, h: 0.9, fill: { color: C.ink }, line: { color: C.ink } });
