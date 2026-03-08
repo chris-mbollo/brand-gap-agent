@@ -1141,12 +1141,20 @@ export default function App() {
       if (!gap) { setPhase("idle"); addLog(`Try a more specific market — e.g. pilates, golf, skincare`); return; }
       addLog(`Found: ${gap.winnerProduct} in ${gap.winnerSubCommunity}`);
 
-      setSt("youtube", "running"); addLog(`Fetching YouTube transcripts…`);
+      setSt("youtube", "running");
+      addLog(`Fetching YouTube transcripts…`);
       const ytData = await fetchYouTube(gap.youtubeSearchTerm);
-      if (ytData && !ytData.error) { setRes("youtube", ytData); setSt("youtube", "done"); addLog(`${ytData.videosWithTranscripts} transcripts extracted`); }
-      else { setSt("youtube", "error"); addLog(`YouTube API unavailable — simulating`); }
-      await sleep(1000);
-
+      if (ytData?.videosWithTranscripts) { setRes("youtube", ytData); setSt("youtube", "done"); addLog(`${ytData.videosWithTranscripts} transcripts extracted`); }
+      else { setSt("youtube", "error"); addLog(`YouTube transcripts unavailable`); }
+      await sleep(500);
+      
+      setSt("reddit", "running");
+      addLog(`Fetching Reddit discussions…`);
+      const redditData = await fetchReddit(gap.winnerProduct, gap.winnerSubCommunity);
+      if (redditData?.postsFound) { setRes("reddit", redditData); setSt("reddit", "done"); addLog(`${redditData.postsFound} Reddit posts found`); }
+      else { setSt("reddit", "error"); addLog(`Reddit unavailable — simulating`); }
+      await sleep(500);
+      
       setSt("trends", "running"); addLog(`Fetching Google Trends…`);
       addLog(`Trends params: ${gap.winnerProduct} | ${gap.winnerSubCommunity} | ${gap.howPeopleReferToIt}`);
       const trendsData = await fetchTrends(gap.winnerProduct, gap.winnerSubCommunity, gap.howPeopleReferToIt);
@@ -1154,20 +1162,6 @@ export default function App() {
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
       else { setSt("trends", "error"); addLog(`Trends API unavailable — simulating`); }
       await sleep(1000);
-
-      setSt("reddit", "running");
-      addLog(`Fetching Reddit discussions…`);
-      const redditData = await fetchReddit(gap.winnerProduct, gap.winnerSubCommunity);
-      if (redditData?.postsFound) { setRes("reddit", redditData); setSt("reddit", "done"); addLog(`${redditData.postsFound} Reddit posts found`); }
-      else { setSt("reddit", "error"); addLog(`Reddit unavailable — simulating`); }
-      await sleep(500);
-
-      setSt("youtube", "running");
-      addLog(`Fetching YouTube transcripts…`);
-      const yt = await fetchYouTube(gap.youtubeSearchTerm);
-      if (yt?.videosWithTranscripts) { setRes("youtube", yt); setSt("youtube", "done"); addLog(`${yt.videosWithTranscripts} transcripts extracted`); }
-      else { setSt("youtube", "error"); addLog(`YouTube transcripts unavailable`); }
-      await sleep(500);
       
      const mine = await go("mine", P.mine(gap.winnerSubCommunity, gap.winnerProduct, ytData, redditData), `Analyzing community data…`);
       if (!mine) { setPhase("done"); return; }
