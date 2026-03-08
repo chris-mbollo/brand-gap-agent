@@ -90,8 +90,13 @@ export default async function handler(req) {
   if (community) terms.push(community);
   if (problem)   terms.push(problem);
 
-  // Fetch all in parallel
-  const results = await Promise.all(terms.map(t => fetchTrendData(t, geo, serpApiKey)));
+// Fetch sequentially to avoid rate limits
+const results = [];
+for (const t of terms) {
+  const r = await fetchTrendData(t, geo, serpApiKey);
+  results.push(r);
+  await new Promise(res => setTimeout(res, 500));
+}
   const valid   = results.filter(Boolean);
 
   if (!valid.length) {
@@ -131,7 +136,7 @@ export default async function handler(req) {
   // Brand saturation signal — are brands appearing in rising queries?
   const allBrandSignals   = scored.flatMap(s => s.brandSignals);
   const allGenericSignals = scored.flatMap(s => s.genericSignals);
-  const brandSaturationRisk = allBrandSignals.length > 2 ? 'HIGH' : allBrandSignals.length > 0 ? 'MEDIUM' : 'LOW';
+  const brandSaturationRisk = allBrandSignals.length > 8 ? 'HIGH' : allBrandSignals.length > 3 ? 'MEDIUM' : 'LOW';
 
   // Launch window — seasonality detection
   const productTimeline = scored[0]?.timelineData || [];
@@ -164,7 +169,7 @@ export default async function handler(req) {
     })),
     brandSaturationRisk,
     isRisingNow,
-    launchWindowOpen: isRisingNow && brandSaturationRisk !== 'HIGH',
+    launchWindowOpen: (isRisingNow || composite >= 6) && brandSaturationRisk !== 'HIGH',
     interpretation: {
       direction:        best.trend.direction,
       opportunityScore: composite,
