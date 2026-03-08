@@ -992,6 +992,7 @@ export default function App() {
       await sleep(1000);
 
       setSt("trends", "running"); addLog(`Fetching Google Trends…`);
+      addLog(`Trends params: ${gap.winnerProduct} | ${gap.winnerSubCommunity} | ${gap.howPeopleReferToIt}`);
       const trendsData = await fetchTrends(gap.winnerProduct, gap.winnerSubCommunity, gap.howPeopleReferToIt);
       addLog(`Trends raw: ${JSON.stringify(trendsData)?.slice(0, 100)}`);
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
