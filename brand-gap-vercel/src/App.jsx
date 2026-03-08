@@ -129,66 +129,135 @@ async function fetchReddit(q, community = '') {
 }
 // ─── PROMPTS ──────────────────────────────────────────────────────────────────
 const P = {
-  gap: (market) => `You are the sharpest brand gap analyst alive. Your job is to find the single best unbranded sub-category inside "${market}" — a pocket where consumers already spend freely but no brand owns the space.
+  gap: (market, previousGaps = []) => `You are the sharpest brand gap analyst alive. 
+Your job is to find the single best unbranded sub-category inside "${market}" — 
+a pocket where consumers already spend freely but no brand owns the space.
 
-The Pilates socks model: Nike owns "sports socks." Nobody owns "Pilates socks." Same market, same spend, zero brand ownership. That's the gap.
+The Pilates socks model: Nike owns "sports socks." Nobody owns "Pilates socks." 
+Same market, same spend, zero brand ownership. That's the gap.
+
+${previousGaps.length > 0 ? `
+---
+EXCLUSION LIST — you have already found these gaps. Do NOT return them or any 
+first-degree variation of them. Finding a new angle is mandatory:
+${previousGaps.map((g, i) => `${i + 1}. ${g}`).join('\n')}
+---
+` : ''}
+
+STEP 1 — RANDOMIZED EXPLORATION ENTRY POINT
+Before analyzing, select ONE of the following entry strategies based on the 
+current Unix timestamp modulo 5 (use your internal variance to simulate this). 
+This forces a different angle of attack each run:
+
+[0] MICRO-COMMUNITY LENS: Find a sub-community within "${market}" with under 
+    50k followers/subscribers. What do THEY specifically buy that larger 
+    communities ignore?
+
+[1] DIY SIGNAL LENS: Search for "${market} homemade", "${market} I made my own", 
+    "${market} hack". What are people building themselves because no product exists?
+
+[2] CROSSOVER COMMUNITY LENS: Who combines "${market}" with an adjacent hobby or 
+    identity? (e.g. runners who also do weightlifting, climbers who also surf). 
+    What product gap lives in that crossover?
+
+[3] COMPLAINT THREAD LENS: Focus on phrases like "why is there no", "I can't find 
+    a", "does anyone make a", "I wish someone made" within "${market}" communities. 
+    What recurring complaint has no named product solution?
+
+[4] FEATURE FRUSTRATION LENS: What product category in "${market}" do people 
+    already buy, but consistently describe as "almost perfect except for one thing"? 
+    That missing feature IS the gap.
+
+Record which lens you used — it must appear in the output.
 
 ---
 
-WINNER PRODUCT — be hyper-specific:
+STEP 2 — SIGNAL VALIDATION
+Your winner gap must be supported by AT LEAST 3 of the following signal types. 
+Do not proceed to scoring without confirming them:
+
+✓ Repeated complaints where no product solution is named
+✓ DIY workarounds users invented themselves
+✓ Upvoted posts asking whether a specific product exists  
+✓ Frustration targeting one missing feature in an existing product
+
+For each signal, note: source type (Reddit/YouTube), signal type, and approximate 
+recurrence. If you cannot find 3 real signals, disclaim uncertainty — do not 
+fabricate signals to meet the threshold.
+
+---
+
+STEP 3 — WINNER PRODUCT — be hyper-specific:
 - Bad: "golf towel" (too generic, Amazon has 400 brands)
-- Bad: "yoga mat" (Lululemon, Manduka — saturated)
-- Good: "microfiber waffle-weave golf towel" → even better: "magnetic golf towel" (specific form factor, no brand owns it)
-- Good: "reformer grip socks" (not just "Pilates socks" — the sub-niche within the sub-niche)
-The winner is a product people already buy generically, where nobody has built a brand identity around it yet.
+- Bad: "yoga mat" (Lululemon, Manduka — saturated)  
+- Good: "microfiber waffle-weave golf towel" → even better: "magnetic golf towel"
+- Good: "reformer grip socks" (the sub-niche within the sub-niche)
+
+The winner is a product people already buy generically, where nobody has built 
+a brand identity around it yet. If your first candidate appears on the exclusion 
+list or is a close variation — discard it and go deeper into the entry lens.
 
 ---
 
-WHY THIS GAP — 2 sentences, make them count:
-- Sentence 1: What's the structural reason no brand owns this yet? (too niche for big players, too new, spun off from a trend)
-- Sentence 2: Why is NOW the right timing window? (community just crossed a growth inflection, search volume rising, no incumbent with real brand equity)
-- Bad: "People buy golf towels and there's no dominant brand."
-- Good: "The disc golf community has exploded 40% YoY but spawned from a demographic that rejects traditional golf branding — no brand has crossed over with disc-golf-native identity. Search volume for disc golf accessories is at an all-time high while brand saturation remains near zero."
+STEP 4 — WHY THIS GAP — 2 sentences, make them count:
+- Sentence 1: Structural reason no brand owns this yet (too niche for big players, 
+  too new, spun off from a trend)
+- Sentence 2: Why NOW is the timing window (community growth inflection, rising 
+  search volume, no incumbent with real brand equity)
+
+Bad: "People buy golf towels and there's no dominant brand."
+Good: "The disc golf community has exploded 40% YoY but spawned from a demographic 
+that rejects traditional golf branding — no brand has crossed over with 
+disc-golf-native identity. Search volume for disc golf accessories is at an 
+all-time high while brand saturation remains near zero."
 
 ---
 
-GAP SCORE (1–10) — score on these 4 axes, average them:
-1. Spend evidence: Do people already buy this? (10 = proven category spend, 1 = hypothetical)
-2. Brand vacuum: How empty is the brand landscape? (10 = zero recognizable brands, 1 = 3+ funded competitors)
-3. Community identity: Does the sub-community have a strong self-identity to attach a brand to? (10 = tribal, 1 = generic hobbyists)
-4. Timing: Early adopter phase or already mainstream? (10 = innovators/early adopters, 1 = late majority)
-A 9/10 means: proven spend + zero brands + strong tribe + early timing. Don't inflate scores — a 7 is a solid gap.
+STEP 5 — GAP SCORE (1–10) — score on 4 axes, average them:
+1. Spend evidence: Do people already buy this? (10 = proven spend, 1 = hypothetical)
+2. Brand vacuum: How empty is the brand landscape? (10 = zero recognizable brands, 
+   1 = 3+ funded competitors)
+3. Community identity: Strong self-identity to attach a brand to? (10 = tribal, 
+   1 = generic hobbyists)
+4. Timing: Early adopter phase or mainstream? (10 = innovators/early adopters, 
+   1 = late majority)
+
+A 9/10: proven spend + zero brands + strong tribe + early timing. 
+Don't inflate scores — a 7 is a solid gap.
 
 ---
 
-YOUTUBE SEARCH TERM — this is critical and most people get it wrong:
-The term must return community lifestyle videos, NOT product listicles or shopping content.
-
-Why this matters: Product searches ("best golf towel") return affiliate review videos with no organic product mentions and no transcripts worth analyzing. Community searches ("my disc golf bag setup") return creator vlogs where products are mentioned casually, authentically, and with real language — which is the signal we need.
+STEP 6 — YOUTUBE SEARCH TERM — this is critical:
+Must return community lifestyle videos, NOT product listicles or shopping content.
 
 Rules:
-- Must reflect how the sub-community talks about their lifestyle, not how a shopper searches for a product
-- Should return videos where the product would appear incidentally, not as the subject
-- Avoid single nouns ("golf"), brand names, or "best/top/review" framing
+- Reflect how the sub-community talks about their lifestyle, not how a shopper 
+  searches for a product
+- Should return videos where the product appears incidentally, not as the subject
+- Avoid single nouns, brand names, or "best/top/review" framing
 - Aim for the title pattern a micro-influencer (5k–100k subs) would use
-- NEVER use "routine", "workout", "challenge", "exercise", "tutorial" — these return follow-along videos with music and no spoken product mentions
-- Target talking head and vlog style content: "what I use", "my setup", "my essentials", "get ready with me", "week in my life", "what's in my bag", "honest review", "I tried", "day in my life"
-- The ideal video is someone sitting and TALKING about their experience, not demonstrating exercises
+- NEVER use "routine", "workout", "challenge", "exercise", "tutorial"
+- Target: "what I use", "my setup", "my essentials", "get ready with me", 
+  "week in my life", "what's in my bag", "honest review", "I tried", 
+  "day in my life"
 
-Bad → Good examples:
+Bad → Good:
 - "golf towel" → "what's in my golf bag 2024"
-- "yoga mat" → "my morning reformer Pilates routine"
+- "yoga mat" → "my morning reformer Pilates essentials"
 - "running gear" → "marathon training week in my life"
-- "cycling accessories" → "my gravel bike setup and what I carry"
-- "skincare products" → "my minimalist skincare routine glass skin"
-
-The term should feel like something a real person typed into YouTube to find community content, not a product.
 
 ---
 
 Return ONLY valid JSON — no markdown, no backticks:
 {
   "parentMarket": "${market}",
+  "explorationLensUsed": "name of lens from Step 1 + one sentence on why it 
+                          led to this gap",
+  "communitySignals": [
+    {"source": "Reddit or YouTube", "signalType": "complaint|DIY|existence-question|feature-gap", "description": "what the signal was", "recurrence": "high|medium|low"},
+    {"source": "Reddit or YouTube", "signalType": "complaint|DIY|existence-question|feature-gap", "description": "what the signal was", "recurrence": "high|medium|low"},
+    {"source": "Reddit or YouTube", "signalType": "complaint|DIY|existence-question|feature-gap", "description": "what the signal was", "recurrence": "high|medium|low"}
+  ],
   "subCommunities": [
     {"name": "specific sub-community name", "growthSignal": "strong", "products": ["specific product"]},
     {"name": "specific sub-community name", "growthSignal": "moderate", "products": ["specific product"]},
@@ -204,7 +273,9 @@ Return ONLY valid JSON — no markdown, no backticks:
   "dominantBrands": ["none yet"],
   "parentMarketSize": "$XB",
   "cagr": "X%",
-  "youtubeSearchTerm": "community lifestyle search term a micro-influencer would use as a video title"
+  "confidenceLevel": "high|medium|low",
+  "confidenceNote": "one sentence — any disclaimers on brand status or signal strength",
+  "youtubeSearchTerm": "community lifestyle search term a micro-influencer would use"
 }`,
   
   mine: (sub, product, ytData, redditData) => {
@@ -1667,7 +1738,7 @@ export default function App() {
     };
 
     try {
-      const gap = await go("gap", P.gap(parentMarket), `Scanning "${parentMarket}" for brand gaps…`);
+      const prevGaps = (history || []).map(h => h.results?.gap?.winnerProduct).filter(Boolean); const gap = await go("gap", P.gap(parentMarket, prevGaps), `Scanning "${parentMarket}" for brand gaps…`);
       if (!gap) { setPhase("idle"); addLog(`Try a more specific market — e.g. pilates, golf, skincare`); return; }
       addLog(`Found: ${gap.winnerProduct} in ${gap.winnerSubCommunity}`);
 
