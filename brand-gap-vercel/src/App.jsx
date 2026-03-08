@@ -387,6 +387,42 @@ const Panels = {
     </div>
   ),
 
+  reddit: ({ d }) => (
+  <div>
+    <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+      <Badge color="#dc2626">{d.postsFound} posts found</Badge>
+      {(d.subreddits || []).slice(0, 4).map((s, i) => (
+        <Badge key={i} color="#6B7280">r/{s}</Badge>
+      ))}
+    </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+      {(d.posts || []).slice(0, 8).map((p, i) => (
+        <div key={i} style={{ padding: "10px 14px", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)" }}>
+          <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#dc2626", marginBottom: 3 }}>r/{p.subreddit}</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "var(--gray-900)", marginBottom: 4 }}>{p.title}</div>
+          <div style={{ fontSize: 11, color: "var(--gray-500)", lineHeight: 1.6 }}>{p.snippet}</div>
+        </div>
+      ))}
+    </div>
+    {d.signals?.buyingSignals?.length > 0 && <>
+      <Divider />
+      <Label>Buying signals</Label>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {d.signals.buyingSignals.map((s, i) => (
+          <div key={i} style={{ padding: "8px 12px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", fontSize: 12, color: "var(--gray-700)" }}>✓ {s}</div>
+        ))}
+      </div>
+    </>}
+    {d.corpus && <>
+      <Divider />
+      <Label>Corpus preview</Label>
+      <div style={{ padding: "12px 14px", background: "var(--gray-50)", border: "1px solid var(--gray-200)", borderRadius: "var(--radius-sm)", fontSize: 12, fontFamily: "var(--font-mono)", lineHeight: 1.8, color: "var(--gray-500)", maxHeight: 180, overflowY: "auto" }}>
+        {d.corpus.slice(0, 600)}…
+      </div>
+    </>}
+  </div>
+),
+  
  trends: ({ d }) => {
   const momentum = d.trend?.momentum || 0;
   const peakValue = d.trend?.peakValue || 0;
