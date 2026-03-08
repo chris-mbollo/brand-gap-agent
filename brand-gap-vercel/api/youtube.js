@@ -10,7 +10,12 @@ async function fetchTranscript(videoId) {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.content?.slice(0, 3000) || null;
+    const content = data.content?.slice(0, 3000) || null;
+if (!content) return null;
+// Reject non-English transcripts
+const nonLatinChars = (content.match(/[^\x00-\x7F]/g) || []).length;
+if (nonLatinChars / content.length > 0.1) return null;
+return content;
   } catch { return null; }
 }
 
