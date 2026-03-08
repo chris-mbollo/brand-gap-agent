@@ -1077,17 +1077,19 @@ export default function App() {
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
       else { setSt("trends", "error"); addLog(`Trends API unavailable — simulating`); }
       await sleep(1000);
-      
+
+      setSt("reddit", "running");
       addLog(`Fetching Reddit discussions…`);
       const redditData = await fetchReddit(gap.winnerProduct, gap.winnerSubCommunity);
-      if (redditData?.postsFound) addLog(`${redditData.postsFound} Reddit posts found`);
-      else addLog(`Reddit unavailable — simulating`);
+      if (redditData?.postsFound) { setRes("reddit", redditData); setSt("reddit", "done"); addLog(`${redditData.postsFound} Reddit posts found`); }
+      else { setSt("reddit", "error"); addLog(`Reddit unavailable — simulating`); }
       await sleep(500);
 
+      setSt("youtube", "running");
       addLog(`Fetching YouTube transcripts…`);
       const yt = await fetchYouTube(gap.youtubeSearchTerm);
-      if (yt?.videosWithTranscripts) addLog(`${yt.videosWithTranscripts} transcripts extracted`);
-      else addLog(`YouTube transcripts unavailable`);
+      if (yt?.videosWithTranscripts) { setRes("youtube", yt); setSt("youtube", "done"); addLog(`${yt.videosWithTranscripts} transcripts extracted`); }
+      else { setSt("youtube", "error"); addLog(`YouTube transcripts unavailable`); }
       await sleep(500);
       
      const mine = await go("mine", P.mine(gap.winnerSubCommunity, gap.winnerProduct, ytData, redditData), `Analyzing community data…`);
