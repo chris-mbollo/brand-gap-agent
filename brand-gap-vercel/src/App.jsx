@@ -1067,8 +1067,8 @@ export default function App() {
       await sleep(1000);
       
       addLog(`Fetching Reddit discussions…`);
-      const ytData = await fetchReddit(gap.winnerProduct, gap.winnerSubCommunity);
-      if (ytData?.postsFound) addLog(`${ytData.postsFound} Reddit posts found`);
+      const redditData = await fetchReddit(gap.winnerProduct, gap.winnerSubCommunity);
+      if (redditData?.postsFound) addLog(`${redditData.postsFound} Reddit posts found`);
       else addLog(`Reddit unavailable — simulating`);
       await sleep(500);
 
