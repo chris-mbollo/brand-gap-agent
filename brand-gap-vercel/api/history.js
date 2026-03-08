@@ -18,14 +18,15 @@ export const config = { runtime: 'edge' };
 
 // Vercel KV REST client (edge-compatible, no SDK needed)
 const kv = {
-  async get(key) {
-    const res = await fetch(`${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`, {
-      headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.result ? JSON.parse(data.result) : null;
-  },
+ async get(key) {
+  const res = await fetch(`${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`, {
+    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.result) return null;
+  try { return JSON.parse(data.result); } catch { return data.result; }
+},
 
   async set(key, value, exSeconds) {
     const body = exSeconds
@@ -95,11 +96,12 @@ export default async function handler(req) {
 
   // ── GET: fetch run by ID or list all ──────────────────────────────────────
   if (req.method === 'GET') {
-    if (id) {
-      const run = await kv.get(`run:${id}`);
-      if (!run) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: CORS });
-      return new Response(JSON.stringify(run), { headers: CORS });
-    }
+   if (id) {
+  const run = await kv.get(`run:${id}`);
+  if (!run) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: CORS });
+  const parsed = typeof run === 'string' ? JSON.parse(run) : run;
+  return new Response(JSON.stringify(parsed), { headers: CORS });
+}
 
     // List all runs (index stored as a list of summaries)
     const indexRaw = await kv.lrange('runs:index', 0, 49); // last 50 runs
