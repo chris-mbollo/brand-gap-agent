@@ -1088,7 +1088,7 @@ export default function App() {
       else addLog(`YouTube transcripts unavailable`);
       await sleep(500);
       
-      const mine = await go("mine", P.mine(gap.winnerSubCommunity, gap.winnerProduct, ytData), `Analyzing ${ytData?.videosWithTranscripts || 0} transcripts…`);
+     const mine = await go("mine", P.mine(gap.winnerSubCommunity, gap.winnerProduct, ytData, redditData), `Analyzing community data…`);
       if (!mine) { setPhase("done"); return; }
 
       const val = await go("validate", P.validate(gap.winnerProduct, gap.winnerSubCommunity, trendsData), `Validating with trends data…`);
