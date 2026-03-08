@@ -492,10 +492,11 @@ const Panels = {
   mine: ({ d }) => (
     <div>
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        <Badge color={d.dataSource === "REAL_YOUTUBE" ? "#16a34a" : "#d97706"}>
-          {d.dataSource === "REAL_YOUTUBE" ? "✓ Real data" : "~ Simulated"}
+        <Badge color={d.dataSource?.includes("REAL") ? "#16a34a" : "#d97706"}>
+          {d.dataSource?.includes("REAL") ? `✓ Real data (${d.dataSource})` : "~ Simulated"}
         </Badge>
         <Badge color="#16a34a">{d.verdict}</Badge>
+        {d.postsAnalyzed > 0 && <Badge color="#16a34a">{d.postsAnalyzed} Reddit posts</Badge>}
       </div>
       <Card style={{ background: "var(--gray-50)", marginBottom: 16 }}>
         <Label>Key quotes from transcripts</Label>
