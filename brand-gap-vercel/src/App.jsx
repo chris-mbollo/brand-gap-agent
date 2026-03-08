@@ -164,6 +164,9 @@ Rules:
 - Should return videos where the product would appear incidentally, not as the subject
 - Avoid single nouns ("golf"), brand names, or "best/top/review" framing
 - Aim for the title pattern a micro-influencer (5k–100k subs) would use
+- NEVER use "routine", "workout", "challenge", "exercise", "tutorial" — these return follow-along videos with music and no spoken product mentions
+- Target talking head and vlog style content: "what I use", "my setup", "my essentials", "get ready with me", "week in my life", "what's in my bag", "honest review", "I tried", "day in my life"
+- The ideal video is someone sitting and TALKING about their experience, not demonstrating exercises
 
 Bad → Good examples:
 - "golf towel" → "what's in my golf bag 2024"
