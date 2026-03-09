@@ -1902,6 +1902,7 @@ export default function App() {
             try {
               const res = await fetch(`/api/history?id=${id}`);
               const full = await res.json();
+              console.log('history full:', full);
               if (full?.results) {
                 setResults(full.results);
                 setMarket(full.market);
