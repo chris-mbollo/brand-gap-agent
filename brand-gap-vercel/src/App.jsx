@@ -1750,6 +1750,7 @@ export default function App() {
 
       setSt("youtube", "running");
       addLog(`Fetching YouTube transcripts…`);
+      addLog(`YouTube search: ${gap.youtubeSearchTerm}`);
       const ytData = await fetchYouTube(gap.youtubeSearchTerm);
       if (ytData?.videosWithTranscripts) { setRes("youtube", ytData); setSt("youtube", "done"); addLog(`${ytData.videosWithTranscripts} transcripts extracted`); }
       else { setSt("youtube", "error"); addLog(`YouTube transcripts unavailable`); }
