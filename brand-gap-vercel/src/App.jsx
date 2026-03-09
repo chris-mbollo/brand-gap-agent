@@ -1903,11 +1903,12 @@ export default function App() {
               const res = await fetch(`/api/history?id=${id}`);
               const full = await res.json();
               console.log('history full:', full);
-              if (full?.results) {
-                setResults(full.results);
-                setMarket(full.market);
+              const run = typeof full.value === 'string' ? JSON.parse(full.value) : full;
+              if (run?.results) {
+                setResults(run.results);
+                setMarket(run.market);
                 const newStMap = {};
-                Object.keys(full.results).forEach(k => { newStMap[k] = "done"; });
+                Object.keys(run.results).forEach(k => { newStMap[k] = "done"; });
                 setStMap(newStMap);
                 setTab("gap");
                 setPhase("done");
