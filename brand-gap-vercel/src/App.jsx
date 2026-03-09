@@ -1738,7 +1738,12 @@ export default function App() {
     };
 
     try {
-      const prevGaps = (history || []).map(h => h.results?.gap?.winnerProduct).filter(Boolean); const gap = await go("gap", P.gap(parentMarket, prevGaps), `Scanning "${parentMarket}" for brand gaps…`);
+      let prevGaps = [];
+try {
+  const histRes = await fetch('/api/history');
+  const histData = await histRes.json();
+  prevGaps = (histData.runs || []).map(h => h.results?.gap?.winnerProduct).filter(Boolean);
+} catch { prevGaps = []; }
       if (!gap) { setPhase("idle"); addLog(`Try a more specific market — e.g. pilates, golf, skincare`); return; }
       addLog(`Found: ${gap.winnerProduct} in ${gap.winnerSubCommunity}`);
 
