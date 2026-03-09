@@ -26,14 +26,14 @@ const Spin = ({ size = 14, color = "#111827" }) => (
 // This is a component. It takes one prop: `run` (an object with brand, market, etc.)
 // and renders a card. Notice it knows nothing about the rest of the app.
 
-function RunCard({ run, onSelect }) {
+function RunCard({ run, onViewRun }) {
   const date = new Date(run.createdAt).toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric"
   });
 
   return (
     <div
-      onClick={() => { console.log('run:', run); onSelect(run.id); }}
+      onClick={() => { console.log('run:', run); onViewRun(run.id); }}
       style={{
         padding: "18px 20px",
         border: "1px solid var(--gray-200)",
