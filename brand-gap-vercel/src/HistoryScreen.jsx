@@ -217,7 +217,7 @@ setRuns(parsed);
         gap: 14
       }}>
         {runs.map(run => (
-          <RunCard key={run.id} run={run} onSelect={onViewRun} />
+          <RunCard key={run.id} run={run} onViewRun={onViewRun} />
         ))}
       </div>
     </div>
