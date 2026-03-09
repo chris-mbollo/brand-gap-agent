@@ -1762,10 +1762,11 @@ export default function App() {
       if (redditData?.postsFound) { setRes("reddit", redditData); setSt("reddit", "done"); addLog(`${redditData.postsFound} Reddit posts found`); }
       else { setSt("reddit", "error"); addLog(`Reddit unavailable — simulating`); }
       await sleep(500);
-      
+     
       setSt("trends", "running"); addLog(`Fetching Google Trends…`);
-      addLog(`Trends params: ${parentMarket} | ${gap.winnerSubCommunity} | ${parentMarket + ' ' + gap.winnerSubCommunity}`);
-      const trendsData = await fetchTrends(parentMarket, gap.winnerSubCommunity, parentMarket + ' ' + gap.winnerSubCommunity);
+      const cleanCommunity = gap.winnerSubCommunity.replace(/\//g, ' ').trim();
+      addLog(`Trends params: ${parentMarket} | ${cleanCommunity} | ${parentMarket + ' ' + cleanCommunity}`);
+      const trendsData = await fetchTrends(parentMarket, cleanCommunity, parentMarket + ' ' + cleanCommunity);
       addLog(`Trends raw: ${JSON.stringify(trendsData)?.slice(0, 100)}`);
       if (trendsData && !trendsData.error) { setRes("trends", trendsData); setSt("trends", "done"); addLog(`${trendsData.trend?.direction} · ${trendsData.interpretation?.momentum}`); }
       else { setSt("trends", "error"); addLog(`Trends API unavailable — simulating`); }
