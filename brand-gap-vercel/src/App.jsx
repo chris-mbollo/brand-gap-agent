@@ -1804,7 +1804,7 @@ export default function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            results: { gap, mine, validate: val, avatar: av, brands: br, brand: id, shopify: sh, content: ct, supplier: su },
+            results: { gap, youtube: ytData, reddit: redditData, trends: trendsData, mine, validate: val, avatar: av, brands: br, brand: id, shopify: sh, content: ct, supplier: su },
             market: parentMarket
           })
         });
